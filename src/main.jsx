@@ -1,10 +1,23 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { AuthProvider } from './contexts/AuthContext';
+import { EntityProvider } from './contexts/EntityContext';
+import './index.css';
+
+// Check if environment variables are loaded correctly
+if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+  console.warn(
+    'Firebase configuration environment variables are missing. Make sure to create a .env.local file with the required variables.'
+  );
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+    <AuthProvider>
+      <EntityProvider>
+        <App />
+      </EntityProvider>
+    </AuthProvider>
+  </React.StrictMode>
+);
