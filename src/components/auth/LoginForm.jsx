@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { AuthContext } from '../../contexts/AuthContext';
 import { 
   GoogleIcon, 
   FacebookIcon, 
@@ -14,7 +14,9 @@ import {
  * Form for user login with various authentication methods
  */
 function LoginForm({ onClose, switchTab }) {
-  const { login, loginGoogle, loginFacebook, loginLinkedIn, sendOtp, sendWhatsAppOtp, error, clearError } = useAuth();
+  // Use direct context to avoid import issues
+  const auth = useContext(AuthContext);
+  const { login, loginGoogle, loginFacebook, loginLinkedIn, sendOtp, sendWhatsAppOtp, error, clearError } = auth;
   
   // Form state
   const [email, setEmail] = useState('');
@@ -50,6 +52,9 @@ function LoginForm({ onClose, switchTab }) {
         
         await login(email, password);
         setSuccessMessage('Login successful!');
+        
+        // AuthModal will close automatically from its useEffect
+        // No need to manually close or reload
       } else if (loginMethod === 'phone' && otpSent) {
         // Phone OTP verification
         if (!otp) {
@@ -73,9 +78,6 @@ function LoginForm({ onClose, switchTab }) {
         
         setSuccessMessage('WhatsApp verification successful!');
       }
-      
-      // Auth provider will handle the state update
-      // No need to manually close or reload
     } catch (err) {
       console.error('Login error:', err);
       setFormError(err.message);
@@ -156,7 +158,7 @@ function LoginForm({ onClose, switchTab }) {
       
       setSuccessMessage(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
       
-      // Auth provider will handle the state update
+      // AuthModal will close automatically from its useEffect
       // No need to manually close or reload
     } catch (err) {
       console.error(`${provider} login error:`, err);

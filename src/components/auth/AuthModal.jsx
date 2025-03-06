@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -7,40 +7,43 @@ import { useAuth } from '../../contexts/AuthContext';
 /**
  * AuthModal Component
  * Modal for authentication forms (login/register) with a professional blue theme
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} props.isOpen - Whether the modal is open
+ * @param {Function} props.onClose - Function to close the modal
+ * @param {string} props.activeTab - The active tab ('login' or 'register')
+ * @param {Function} props.setActiveTab - Function to switch between tabs
  */
 function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
   const modalRef = useRef(null);
   const { currentUser } = useAuth();
+  const [closingAnimation, setClosingAnimation] = useState(false);
 
-  // Log when modal open state changes for debugging
-  useEffect(() => {
-    console.log("AuthModal open state changed:", isOpen, "activeTab:", activeTab);
-  }, [isOpen, activeTab]);
-  
   // Close modal when user logs in
   useEffect(() => {
     if (currentUser && isOpen) {
       // Give a small delay to show success message
       const timer = setTimeout(() => {
-        onClose();
+        handleClose();
       }, 1500);
       
       return () => clearTimeout(timer);
     }
-  }, [currentUser, isOpen, onClose]);
+  }, [currentUser, isOpen]);
   
-  // Close modal when pressing escape key
+  // Close modal when pressing escape key or clicking outside
   useEffect(() => {
+    if (!isOpen) return;
+    
     const handleEscKey = (event) => {
-      if (event.key === 'Escape' && isOpen) {
-        onClose();
+      if (event.key === 'Escape') {
+        handleClose();
       }
     };
 
-    // Handle clicks outside the modal
     const handleOutsideClick = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target) && isOpen) {
-        onClose();
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        handleClose();
       }
     };
 
@@ -48,18 +51,23 @@ function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
     document.addEventListener('mousedown', handleOutsideClick);
 
     // Prevent body scrolling when modal is open
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+    document.body.style.overflow = 'hidden';
 
     return () => {
       window.removeEventListener('keydown', handleEscKey);
       document.removeEventListener('mousedown', handleOutsideClick);
       document.body.style.overflow = 'auto';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  // Smooth closing animation
+  const handleClose = () => {
+    setClosingAnimation(true);
+    setTimeout(() => {
+      setClosingAnimation(false);
+      onClose();
+    }, 300);
+  };
 
   // If modal is not open, don't render anything
   if (!isOpen) return null;
@@ -68,30 +76,36 @@ function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+        className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity ${
+          closingAnimation ? 'opacity-0' : 'opacity-100'
+        }`}
+        style={{ transitionDuration: '300ms' }}
       ></div>
 
       {/* Modal Content */}
       <div className="flex min-h-screen items-center justify-center p-4">
         <div 
           ref={modalRef}
-          className="relative w-full max-w-md bg-white shadow-2xl rounded-xl overflow-hidden transform transition-all"
+          className={`relative w-full max-w-md bg-white shadow-2xl rounded-xl overflow-hidden transform transition-all ${
+            closingAnimation ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+          }`}
+          style={{ transitionDuration: '300ms' }}
         >
           {/* Close Button */}
           <button
             className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 z-10"
-            onClick={onClose}
+            onClick={handleClose}
           >
             <X size={20} />
             <span className="sr-only">Close</span>
           </button>
 
           {/* Header with gradient background */}
-          <div className="bg-gradient-to-r from-[#003399] to-[#004ccf] pt-12 pb-6 px-6 text-center">
+          <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 pt-12 pb-6 px-6 text-center">
             <h2 className="text-2xl font-bold text-white">
               {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
             </h2>
-            <p className="mt-2 text-blue-100">
+            <p className="mt-2 text-indigo-100">
               {activeTab === 'login' 
                 ? 'Log in to access your account' 
                 : 'Join Business Options to connect with opportunities'}
@@ -103,7 +117,7 @@ function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
             <button
               className={`flex-1 py-4 text-center font-medium ${
                 activeTab === 'login'
-                  ? 'text-[#003399] border-b-2 border-[#003399]'
+                  ? 'text-indigo-700 border-b-2 border-indigo-700'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => setActiveTab('login')}
@@ -113,7 +127,7 @@ function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
             <button
               className={`flex-1 py-4 text-center font-medium ${
                 activeTab === 'register'
-                  ? 'text-[#003399] border-b-2 border-[#003399]'
+                  ? 'text-indigo-700 border-b-2 border-indigo-700'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => setActiveTab('register')}
@@ -125,9 +139,9 @@ function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
           {/* Form Content */}
           <div className="p-6">
             {activeTab === 'login' ? (
-              <LoginForm onClose={onClose} switchTab={() => setActiveTab('register')} />
+              <LoginForm onClose={handleClose} switchTab={() => setActiveTab('register')} />
             ) : (
-              <RegisterForm onClose={onClose} switchTab={() => setActiveTab('login')} />
+              <RegisterForm onClose={handleClose} switchTab={() => setActiveTab('login')} />
             )}
           </div>
         </div>

@@ -3,10 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { AuthContext } from './contexts/AuthContext';
 import { createRouter } from './router';
 import AuthModal from './components/auth/AuthModal';
-import { useContext } from 'react';
-
-// Create local useAuth hook to avoid import issues
-const useAuth = () => useContext(AuthContext);
+import { useAuth } from './contexts/AuthContext';
 
 /**
  * Main App component
@@ -22,7 +19,7 @@ function App() {
   
   // Function to open auth modal with specified tab
   const openAuthModal = (tab = 'login') => {
-    console.log("App: openAuthModal called with tab:", tab);
+    console.log("Opening auth modal with tab:", tab);
     setActiveTab(tab);
     setAuthModalOpen(true);
   };
@@ -38,30 +35,18 @@ function App() {
     return createRouter({
       user: currentUser,
       openAuthModal,
-      closeAuthModal,
-      activeTab,
-      setActiveTab
+      closeAuthModal
     });
-  }, [currentUser, activeTab]);
-  
-  // Close modal automatically when user logs in
-  useEffect(() => {
-    if (currentUser && authModalOpen) {
-      // Small delay to allow success message to be seen
-      const timer = setTimeout(() => {
-        setAuthModalOpen(false);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentUser, authModalOpen]);
-  
-  // Debug render
-  console.log("App is rendering with authModalOpen:", authModalOpen, "activeTab:", activeTab, "user:", currentUser?.uid || 'none');
+  }, [currentUser]);
   
   // When in initial loading state, show minimal UI
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="inline-block animate-spin h-8 w-8 border-t-2 border-b-2 border-indigo-600 rounded-full"></div>
+        <span className="ml-3 text-gray-700">Loading...</span>
+      </div>
+    );
   }
   
   return (

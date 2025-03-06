@@ -501,25 +501,6 @@ const AuthButtons = ({
 }) => {
   const navigate = useNavigate();
 
-  // Simple function to ensure openAuthModal is called directly
-  const handleLoginClick = () => {
-    console.log("Login button clicked, calling openAuthModal('login')");
-    if (typeof openAuthModal === 'function') {
-      openAuthModal('login');
-    } else {
-      console.error("openAuthModal is not a function:", openAuthModal);
-    }
-  };
-
-  const handleRegisterClick = () => {
-    console.log("Register button clicked, calling openAuthModal('register')");
-    if (typeof openAuthModal === 'function') {
-      openAuthModal('register');
-    } else {
-      console.error("openAuthModal is not a function:", openAuthModal);
-    }
-  };
-
   return (
     <div className="flex items-center gap-1 sm:gap-3 ml-auto">
       {/* Become an Advisor - visible on medium and large screens */}
@@ -536,18 +517,16 @@ const AuthButtons = ({
 
       {isAuthenticated ? (
         <>
-          {/* User Profile/Account Button */}
+          {/* User Profile Button - FIXED: Showing only user's name */}
           <div className="relative" ref={userRef}>
-            <Button
-              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 items-center text-xs sm:text-sm flex whitespace-nowrap px-2 sm:px-3"
-              variant="flat"
+            <button
+              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 items-center text-xs sm:text-sm flex whitespace-nowrap px-2 sm:px-3 py-2 rounded"
               onClick={() => setUserOpen(!userOpen)}
             >
               <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
-              <span className="hidden sm:inline">{user?.displayName || 'My Account'}</span>
-              <span className="sm:hidden">Account</span>
+              <span>{user?.displayName || 'User'}</span>
               <ChevronDown className={`ml-1 w-3 h-3 transition-transform ${userOpen ? 'rotate-180' : ''}`} />
-            </Button>
+            </button>
 
             {userOpen && (
               <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
@@ -565,12 +544,12 @@ const AuthButtons = ({
                       {item.name}
                     </Link>
                   ))}
-                  <button
-                    onClick={() => navigate("/dashboard/add-entity")}
+                  <Link
+                    to="/dashboard/add-entity"
                     className="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 font-medium"
                   >
                     + Add New Listing
-                  </button>
+                  </Link>
                   <div className="border-t border-gray-100 my-1"></div>
                   <button
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -585,9 +564,7 @@ const AuthButtons = ({
         </>
       ) : (
         <>
-          
-
-          {/* SIMPLIFIED Login Button - Direct function call */}
+          {/* Login Button */}
           <button
             className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 text-xs sm:text-sm px-2 sm:px-3 py-2 rounded flex items-center"
             onClick={() => {
@@ -599,7 +576,7 @@ const AuthButtons = ({
             <span>Login</span>
           </button>
 
-          {/* SIMPLIFIED Register Button - Direct function call */}
+          {/* Register Button */}
           <button
             className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm px-2 sm:px-3 py-2 rounded flex items-center"
             onClick={() => {
@@ -636,8 +613,7 @@ const AuthButtons = ({
 const SiteHeader = ({ openAuthModal }) => {
   // For debugging - check if openAuthModal is a function
   console.log("SiteHeader props:", { openAuthModal });
-  console.log("openAuthModal in SiteHeader:", openAuthModal);
-
+  
   // Authentication state
   const { user, logout } = useAuth();
   const isAuthenticated = !!user;
@@ -674,11 +650,13 @@ const SiteHeader = ({ openAuthModal }) => {
     };
   }, []);
 
-  // Handle logout
+  // Handle logout - FIXED: Using proper navigation
   const handleLogout = async () => {
     try {
       await logout();
       navigate('/');
+      // Close the user dropdown after logout
+      setUserOpen(false);
     } catch (error) {
       console.error("Logout failed:", error);
     }

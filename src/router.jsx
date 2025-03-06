@@ -20,20 +20,20 @@ const MessagesPage = React.lazy(() => import('./pages/dashboard/Messages'));
 const SettingsPage = React.lazy(() => import('./pages/dashboard/Settings'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 
-// Protected route component
-const ProtectedRoute = ({ element, isAuthenticated, redirectPath = APP_ROUTES.HOME, openAuthModal }) => {
-  if (!isAuthenticated) {
-    // Open login modal and redirect
+// Protected route loader
+const protectedLoader = ({ user, openAuthModal }) => () => {
+  if (!user) {
+    // Trigger auth modal and redirect to home
     setTimeout(() => {
       openAuthModal('login');
     }, 100);
-    return <Navigate to={redirectPath} replace />;
+    return { redirect: APP_ROUTES.HOME };
   }
-  return element;
+  return null;
 };
 
-// Router creator function (accepts auth state and modal control)
-export const createRouter = (isAuthenticated, openAuthModal) => {
+// Create router with auth state and modal controls
+export const createRouter = ({ user, openAuthModal, closeAuthModal }) => {
   return createBrowserRouter([
     {
       path: '/',
@@ -96,14 +96,8 @@ export const createRouter = (isAuthenticated, openAuthModal) => {
     },
     {
       path: APP_ROUTES.DASHBOARD.ROOT,
-      element: (
-        <ProtectedRoute
-          element={<DashboardLayout />}
-          isAuthenticated={isAuthenticated}
-          redirectPath={APP_ROUTES.HOME}
-          openAuthModal={openAuthModal}
-        />
-      ),
+      element: user ? <DashboardLayout /> : <Navigate to={APP_ROUTES.HOME} replace />,
+      loader: protectedLoader({ user, openAuthModal }),
       children: [
         {
           index: true,
