@@ -25,26 +25,72 @@ export const EntityProvider = ({ children }) => {
   // Load user entities when user profile changes
   useEffect(() => {
     const loadUserEntities = async () => {
-      if (!currentUser || !userProfile) {
+      if (!currentUser) {
         setUserEntities([]);
         return;
       }
 
       setLoading(true);
       try {
-        // Query user's entities
-        const result = await queryDocuments({
-          collectionName: 'entities',
-          filters: [
-            { field: 'ownerId', operator: '==', value: currentUser.uid }
-          ],
-          pageSize: 50 // Assuming most users won't have more than 50 entities
-        });
+        // In development/testing, provide some placeholder data
+        if (process.env.NODE_ENV === 'development') {
+          // Mock data for testing
+          setUserEntities([
+            {
+              id: '1',
+              title: 'Coffee Shop',
+              type: 'business',
+              description: 'A well-established coffee shop in downtown area',
+              price: '50,00,000',
+              location: 'Mumbai',
+              category: 'Food & Beverage',
+              plan: 'premium',
+              status: 'active',
+              views: 245,
+              connects: 12,
+              createdAt: new Date()
+            },
+            {
+              id: '2',
+              title: 'Tech Startup',
+              type: 'startup',
+              description: 'SaaS platform for small businesses',
+              price: '1,20,00,000',
+              location: 'Bangalore',
+              category: 'Technology',
+              plan: 'basic',
+              status: 'active',
+              views: 123,
+              connects: 5,
+              createdAt: new Date()
+            }
+          ]);
+          setLoading(false);
+          return;
+        }
 
-        setUserEntities(result.documents);
+        // In production, query the actual data
+        try {
+          // Query user's entities
+          const result = await queryDocuments({
+            collectionName: 'entities',
+            filters: [
+              { field: 'ownerId', operator: '==', value: currentUser.uid }
+            ],
+            pageSize: 50 // Assuming most users won't have more than 50 entities
+          });
+
+          setUserEntities(result.documents || []);
+        } catch (err) {
+          console.error('Error loading user entities:', err);
+          // Fail gracefully with empty array
+          setUserEntities([]);
+        }
       } catch (err) {
-        console.error('Error loading user entities:', err);
+        console.error('Error in entity context:', err);
         setError(err.message);
+        // Ensure we have a valid array
+        setUserEntities([]);
       } finally {
         setLoading(false);
       }
@@ -55,12 +101,14 @@ export const EntityProvider = ({ children }) => {
 
   // Get entity count by type
   const getEntityCountByType = (type) => {
-    return userEntities.filter(entity => entity.type === type).length;
+    if (!Array.isArray(userEntities)) return 0;
+    return userEntities.filter(entity => entity?.type === type).length;
   };
 
   // Get all entities by type
   const getEntitiesByType = (type) => {
-    return userEntities.filter(entity => entity.type === type);
+    if (!Array.isArray(userEntities)) return [];
+    return userEntities.filter(entity => entity?.type === type);
   };
 
   // Create a new entity
@@ -73,6 +121,28 @@ export const EntityProvider = ({ children }) => {
     setLoading(true);
 
     try {
+      // Mock creation in development
+      if (process.env.NODE_ENV === 'development') {
+        const newEntity = {
+          id: Date.now().toString(),
+          ...entityData,
+          ownerId: currentUser.uid,
+          ownerName: currentUser.displayName || '',
+          ownerEmail: currentUser.email || '',
+          creatorId: currentUser.uid,
+          status: 'active',
+          connects: 0,
+          views: 0,
+          createdAt: new Date()
+        };
+        
+        // Update local state
+        setUserEntities(prev => [...(Array.isArray(prev) ? prev : []), newEntity]);
+        
+        setLoading(false);
+        return newEntity;
+      }
+
       // Add owner information
       const enrichedData = {
         ...entityData,
@@ -86,10 +156,16 @@ export const EntityProvider = ({ children }) => {
       };
 
       // Create entity in Firestore
-      const entityId = await createDocumentWithId('entities', entityData.customId || Date.now().toString(), enrichedData);
+      const entityId = await createDocumentWithId(
+        'entities', 
+        entityData.customId || Date.now().toString(), 
+        enrichedData
+      );
 
       // Update user's entities list in Firestore
-      const updatedEntities = userProfile.entities ? [...userProfile.entities, entityId] : [entityId];
+      const userEntitiesArray = Array.isArray(userProfile?.entities) ? userProfile.entities : [];
+      const updatedEntities = [...userEntitiesArray, entityId];
+      
       await updateDocument('users', currentUser.uid, {
         entities: updatedEntities
       });
@@ -98,7 +174,7 @@ export const EntityProvider = ({ children }) => {
       const newEntity = await getDocument('entities', entityId);
 
       // Update local state
-      setUserEntities(prev => [...prev, newEntity]);
+      setUserEntities(prev => [...(Array.isArray(prev) ? prev : []), newEntity]);
 
       return newEntity;
     } catch (err) {
@@ -120,6 +196,21 @@ export const EntityProvider = ({ children }) => {
     setLoading(true);
 
     try {
+      // For development/testing
+      if (process.env.NODE_ENV === 'development') {
+        // Update the entity in local state
+        const updatedEntities = userEntities.map(entity => 
+          entity.id === entityId ? { ...entity, ...data } : entity
+        );
+        
+        setUserEntities(updatedEntities);
+        
+        const updatedEntity = updatedEntities.find(e => e.id === entityId);
+        
+        setLoading(false);
+        return updatedEntity;
+      }
+
       // Get the entity to verify ownership
       const entity = await getDocument('entities', entityId);
       
@@ -138,9 +229,10 @@ export const EntityProvider = ({ children }) => {
       const updatedEntity = await getDocument('entities', entityId);
 
       // Update local state
-      setUserEntities(prev => 
-        prev.map(e => e.id === entityId ? updatedEntity : e)
-      );
+      setUserEntities(prev => {
+        if (!Array.isArray(prev)) return [updatedEntity];
+        return prev.map(e => e.id === entityId ? updatedEntity : e);
+      });
 
       return updatedEntity;
     } catch (err) {
@@ -162,6 +254,16 @@ export const EntityProvider = ({ children }) => {
     setLoading(true);
 
     try {
+      // For development/testing
+      if (process.env.NODE_ENV === 'development') {
+        setUserEntities(prev => 
+          Array.isArray(prev) ? prev.filter(e => e.id !== entityId) : []
+        );
+        
+        setLoading(false);
+        return true;
+      }
+
       // Get the entity to verify ownership
       const entity = await getDocument('entities', entityId);
       
@@ -177,13 +279,18 @@ export const EntityProvider = ({ children }) => {
       await deleteDocument('entities', entityId);
 
       // Update user's entities list in Firestore
-      const updatedEntities = userProfile.entities.filter(id => id !== entityId);
+      const userEntitiesArray = Array.isArray(userProfile?.entities) ? userProfile.entities : [];
+      const updatedEntities = userEntitiesArray.filter(id => id !== entityId);
+      
       await updateDocument('users', currentUser.uid, {
         entities: updatedEntities
       });
 
       // Update local state
-      setUserEntities(prev => prev.filter(e => e.id !== entityId));
+      setUserEntities(prev => {
+        if (!Array.isArray(prev)) return [];
+        return prev.filter(e => e.id !== entityId);
+      });
 
       return true;
     } catch (err) {
@@ -217,6 +324,37 @@ export const EntityProvider = ({ children }) => {
   const getEntityById = async (entityId) => {
     setLoading(true);
     try {
+      // For development/testing
+      if (process.env.NODE_ENV === 'development') {
+        const entity = Array.isArray(userEntities) 
+          ? userEntities.find(e => e.id === entityId)
+          : null;
+          
+        if (entity) {
+          setLoading(false);
+          return entity;
+        }
+        
+        // Create a mock entity if not found
+        const mockEntity = {
+          id: entityId,
+          title: 'Sample Entity',
+          type: 'business',
+          description: 'This is a placeholder entity for development',
+          price: '50,00,000',
+          location: 'Mumbai',
+          category: 'Food & Beverage',
+          plan: 'basic',
+          status: 'active',
+          views: 123,
+          connects: 5,
+          createdAt: new Date()
+        };
+        
+        setLoading(false);
+        return mockEntity;
+      }
+
       const entity = await getDocument('entities', entityId);
       return entity;
     } catch (err) {
@@ -232,11 +370,56 @@ export const EntityProvider = ({ children }) => {
   const searchEntities = async (searchParams) => {
     setLoading(true);
     try {
+      // For development/testing
+      if (process.env.NODE_ENV === 'development') {
+        // Simulate a delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Create mock search results
+        const mockResults = [
+          {
+            id: '101',
+            title: 'Coffee Shop in Mumbai',
+            type: 'business',
+            description: 'Well-established coffee shop in prime location',
+            price: '50,00,000',
+            location: 'Mumbai',
+            category: 'Food & Beverage',
+            plan: 'premium',
+            status: 'active',
+            views: 245,
+            connects: 12,
+            createdAt: new Date()
+          },
+          {
+            id: '102',
+            title: 'Restaurant Franchise',
+            type: 'franchise',
+            description: 'Popular restaurant chain with 5 locations',
+            price: '1,50,00,000',
+            location: 'Delhi',
+            category: 'Food & Beverage',
+            plan: 'platinum',
+            status: 'active',
+            views: 412,
+            connects: 25,
+            createdAt: new Date()
+          }
+        ];
+        
+        setLoading(false);
+        return {
+          documents: mockResults,
+          lastVisible: null,
+          hasMore: false
+        };
+      }
+
       // Build filters from search params
       const filters = [];
       
       // Type filter
-      if (searchParams.type && ENTITY_TYPES.includes(searchParams.type)) {
+      if (searchParams.type && Object.values(ENTITY_TYPES).includes(searchParams.type)) {
         filters.push({ field: 'type', operator: '==', value: searchParams.type });
       }
       
@@ -245,7 +428,7 @@ export const EntityProvider = ({ children }) => {
       
       // Other filters as needed
       if (searchParams.location) {
-        filters.push({ field: 'location.city', operator: '==', value: searchParams.location });
+        filters.push({ field: 'location', operator: '==', value: searchParams.location });
       }
       
       if (searchParams.priceMin) {
@@ -270,7 +453,13 @@ export const EntityProvider = ({ children }) => {
     } catch (err) {
       console.error('Error searching entities:', err);
       setError(err.message);
-      throw err;
+      
+      // Return empty result on error
+      return {
+        documents: [],
+        lastVisible: null,
+        hasMore: false
+      };
     } finally {
       setLoading(false);
     }

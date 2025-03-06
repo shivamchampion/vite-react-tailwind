@@ -1,78 +1,31 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { RouterProvider } from 'react-router-dom';
-import { AuthContext } from './contexts/AuthContext';
 import { createRouter } from './router';
-import AuthModal from './components/auth/AuthModal';
 import { useAuth } from './contexts/AuthContext';
 
 /**
- * Main App component
- * Manages auth state and router configuration
+ * App Component
+ * Main component that sets up the router based on authentication state
  */
 function App() {
-  // Auth modal state
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
+  const { isAuthenticated, loading } = useAuth();
   
-  // Get auth context with current user
-  const { currentUser, userProfile, loading } = useAuth();
+  // Create router with current auth state
+  const router = useMemo(() => createRouter(isAuthenticated), [isAuthenticated]);
   
-  // Function to open auth modal with specified tab
-  const openAuthModal = (tab = 'login') => {
-    console.log("Opening auth modal with tab:", tab);
-    setActiveTab(tab);
-    setAuthModalOpen(true);
-  };
-  
-  // Close auth modal
-  const closeAuthModal = () => {
-    console.log("Closing auth modal");
-    setAuthModalOpen(false);
-  };
-
-  // Create memoized router to prevent unnecessary re-renders
-  const router = useMemo(() => {
-    console.log("Creating router with user:", currentUser?.uid || 'no user');
-    return createRouter({
-      user: currentUser,
-      openAuthModal,
-      closeAuthModal
-    });
-  }, [currentUser]);
-  
-  // Log auth state changes
-  useEffect(() => {
-    if (currentUser) {
-      console.log("User is authenticated:", currentUser.uid);
-    } else {
-      console.log("User is not authenticated");
-    }
-  }, [currentUser]);
-  
-  // When in initial loading state, show minimal UI
+  // Show loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="inline-block animate-spin h-8 w-8 border-t-2 border-b-2 border-indigo-600 rounded-full"></div>
-        <span className="ml-3 text-gray-700">Loading...</span>
+      <div className="flex justify-center items-center min-h-screen bg-white">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
+          <p className="text-gray-600">Loading application...</p>
+        </div>
       </div>
     );
   }
   
-  return (
-    <>
-      {/* Router Provider */}
-      <RouterProvider router={router} />
-      
-      {/* Auth Modal - Rendered at the app level */}
-      <AuthModal 
-        isOpen={authModalOpen} 
-        onClose={closeAuthModal} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-      />
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

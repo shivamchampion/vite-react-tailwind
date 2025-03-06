@@ -1,196 +1,259 @@
-import React, { 
-  createContext, 
-  useState, 
-  useContext, 
-  useEffect 
-} from 'react';
-import { 
-  onAuthStateChanged, 
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-  signOut,
-  sendPasswordResetEmail,
-  updateProfile
-} from 'firebase/auth';
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  updateDoc 
-} from 'firebase/firestore';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase/config';
+import { 
+  registerWithEmailPassword,
+  loginWithEmailPassword,
+  loginWithGoogle,
+  loginWithFacebook,
+  loginWithLinkedIn,
+  sendPhoneOTP,
+  verifyPhoneOTP,
+  sendWhatsAppLoginOTP,
+  verifyWhatsAppOTP,
+  logout,
+  resetPassword,
+  updateUserProfile
+} from '../services/firebase/auth';
 
-// Create AuthContext
+// Create the auth context
 export const AuthContext = createContext();
 
-// Authentication Provider Component
+// Auth provider component
 export const AuthProvider = ({ children }) => {
-  // Authentication State
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Clear Error
+  // Clear error helper
   const clearError = () => setError(null);
 
-  // Create User Document in Firestore
-  const createUserDocument = async (user, additionalData = {}) => {
-    if (!user) return;
-
-    const userRef = doc(db, 'users', user.uid);
-    
-    try {
-      const userDoc = await getDoc(userRef);
-      
-      if (!userDoc.exists()) {
-        const { displayName, email, photoURL } = user;
-        const createdAt = new Date();
-
-        await setDoc(userRef, {
-          uid: user.uid,
-          displayName: displayName || additionalData.name,
-          email,
-          photoURL,
-          createdAt,
-          role: 'user',
-          connectsBalance: 15, // Default connects
-          ...additionalData
-        });
-      }
-
-      return userRef;
-    } catch (error) {
-      console.error('Error creating user document:', error);
-      throw error;
-    }
-  };
-
-  // Registration
-  const register = async (email, password, name) => {
-    clearError();
-    
-    try {
-      // Create user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        email, 
-        password
-      );
-      
-      // Update profile with name
-      await updateProfile(userCredential.user, { displayName: name });
-      
-      // Create user document in Firestore
-      await createUserDocument(userCredential.user, { name });
-      
-      return userCredential.user;
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
-  };
-
-  // Login
-  const login = async (email, password) => {
-    clearError();
-    
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth, 
-        email, 
-        password
-      );
-      return userCredential.user;
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
-  };
-
-  // Social Logins
-  const loginGoogle = async () => {
-    clearError();
-    
-    try {
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
-      await createUserDocument(result.user);
-      return result.user;
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
-  };
-
-  const loginFacebook = async () => {
-    clearError();
-    
-    try {
-      const result = await signInWithPopup(auth, new FacebookAuthProvider());
-      await createUserDocument(result.user);
-      return result.user;
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
-  };
-
-  // Logout
-  const logout = async () => {
-    clearError();
-    
-    try {
-      await signOut(auth);
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
-  };
-
-  // Password Reset
-  const resetPassword = async (email) => {
-    clearError();
-    
-    try {
-      await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
-  };
-
-  // Authentication State Listener
+  // Effect to listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      
       if (user) {
         try {
-          // Fetch user profile from Firestore
+          // Get extended user profile from Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          
           if (userDoc.exists()) {
             setUserProfile(userDoc.data());
+          } else {
+            console.warn('User document not found in Firestore');
           }
-          
-          setCurrentUser(user);
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          setError(error.message);
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
         }
       } else {
-        setCurrentUser(null);
         setUserProfile(null);
       }
       
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Cleanup subscription
+    return unsubscribe;
   }, []);
 
-  // Context Value
+  // Register with email and password
+  const register = async (email, password, displayName) => {
+    clearError();
+    setLoading(true);
+    try {
+      const user = await registerWithEmailPassword(email, password, displayName);
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login with email and password
+  const login = async (email, password) => {
+    clearError();
+    setLoading(true);
+    try {
+      const user = await loginWithEmailPassword(email, password);
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login with Google
+  const loginGoogle = async () => {
+    clearError();
+    setLoading(true);
+    try {
+      const user = await loginWithGoogle();
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login with Facebook
+  const loginFacebook = async () => {
+    clearError();
+    setLoading(true);
+    try {
+      const user = await loginWithFacebook();
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login with LinkedIn
+  const loginLinkedIn = async (accessToken) => {
+    clearError();
+    setLoading(true);
+    try {
+      const user = await loginWithLinkedIn(accessToken);
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Send Phone OTP
+  const sendOtp = async (phoneNumber, containerId) => {
+    clearError();
+    setLoading(true);
+    try {
+      const result = await sendPhoneOTP(phoneNumber, containerId);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify Phone OTP
+  const verifyOtp = async (code) => {
+    clearError();
+    setLoading(true);
+    try {
+      const user = await verifyPhoneOTP(code);
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Send WhatsApp OTP
+  const sendWhatsAppOtp = async (phoneNumber) => {
+    clearError();
+    setLoading(true);
+    try {
+      const result = await sendWhatsAppLoginOTP(phoneNumber);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify WhatsApp OTP
+  const verifyWhatsAppOtp = async (phoneNumber, otp) => {
+    clearError();
+    setLoading(true);
+    try {
+      const result = await verifyWhatsAppOTP(phoneNumber, otp);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout
+  const signout = async () => {
+    clearError();
+    try {
+      await logout();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Reset password
+  const passwordReset = async (email) => {
+    clearError();
+    setLoading(true);
+    try {
+      await resetPassword(email);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update user profile
+  const updateProfile = async (data) => {
+    clearError();
+    setLoading(true);
+    try {
+      await updateUserProfile(currentUser.uid, data);
+      // Update local profile state
+      setUserProfile(prev => ({ ...prev, ...data }));
+      return true;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get fresh user profile data
+  const refreshUserProfile = async () => {
+    if (!currentUser) return null;
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserProfile(userData);
+        return userData;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error refreshing user profile:', err);
+      throw err;
+    }
+  };
+
+  // Context value
   const value = {
     currentUser,
     userProfile,
@@ -201,8 +264,15 @@ export const AuthProvider = ({ children }) => {
     login,
     loginGoogle,
     loginFacebook,
-    logout,
-    resetPassword,
+    loginLinkedIn,
+    sendOtp,
+    verifyOtp,
+    sendWhatsAppOtp,
+    verifyWhatsAppOtp,
+    signout,
+    passwordReset,
+    updateProfile,
+    refreshUserProfile,
     isAuthenticated: !!currentUser
   };
 
@@ -213,13 +283,13 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom Hook to Use Authentication Context
+// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  
   return context;
 };
+
+export default AuthProvider;

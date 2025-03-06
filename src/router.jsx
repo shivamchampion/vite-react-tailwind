@@ -1,67 +1,42 @@
 import React from 'react';
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { APP_ROUTES } from './utils/constants';
-import { useAuth } from './contexts/AuthContext';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
-// Pages (Lazy loaded)
+// Pages - Lazy loaded for better performance
 const Homepage = React.lazy(() => import('./pages/home'));
-const DashboardPage = React.lazy(() => import('./pages/dashboard'));
-const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 const BusinessListingsPage = React.lazy(() => import('./pages/marketplace/BusinessListings'));
+const EntityDetailPage = React.lazy(() => import('./pages/marketplace/EntityDetail'));
+const DashboardPage = React.lazy(() => import('./pages/dashboard'));
 const ProfilePage = React.lazy(() => import('./pages/dashboard/Profile'));
 const EntitiesPage = React.lazy(() => import('./pages/dashboard/Entities'));
+const AddEntityPage = React.lazy(() => import('./pages/dashboard/AddEntity'));
+const EditEntityPage = React.lazy(() => import('./pages/dashboard/EditEntity'));
+const ConnectsPage = React.lazy(() => import('./pages/dashboard/Connects'));
+const MessagesPage = React.lazy(() => import('./pages/dashboard/Messages'));
+const SettingsPage = React.lazy(() => import('./pages/dashboard/Settings'));
+const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 
-// Enhanced Protected Route Component
-const ProtectedRoute = ({ children, requiredRole = null }) => {
-  const { currentUser, userProfile, loading } = useAuth();
-  const location = useLocation();
-
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  // Not authenticated - redirect to home
-  if (!currentUser) {
-    return <Navigate 
-      to={APP_ROUTES.HOME} 
-      replace 
-      state={{ 
-        from: location, 
-        authRequired: true 
-      }} 
-    />;
-  }
-
-  // Check role if required
-  if (requiredRole && userProfile?.role !== requiredRole) {
-    return <Navigate to={APP_ROUTES.HOME} replace />;
-  }
-
-  return children;
+// Protected route component
+const ProtectedRoute = ({ element, isAuthenticated, redirectPath = APP_ROUTES.HOME }) => {
+  return isAuthenticated ? element : <Navigate to={redirectPath} replace />;
 };
 
-// Create Router with Enhanced Authentication
-export const createRouter = () => {
+// Router creator function (accepts auth state)
+export const createRouter = (isAuthenticated) => {
   return createBrowserRouter([
     {
       path: '/',
       element: <MainLayout />,
       errorElement: <NotFoundPage />,
       children: [
-        { 
-          index: true, 
-          element: <Homepage /> 
+        {
+          index: true,
+          element: <Homepage />
         },
-        // Public marketplace routes
         {
           path: APP_ROUTES.MARKETPLACE.BUSINESS,
           element: <BusinessListingsPage type="business" />
@@ -73,15 +48,53 @@ export const createRouter = () => {
         {
           path: APP_ROUTES.MARKETPLACE.STARTUP,
           element: <BusinessListingsPage type="startup" />
+        },
+        {
+          path: APP_ROUTES.MARKETPLACE.INVESTOR,
+          element: <BusinessListingsPage type="investor" />
+        },
+        {
+          path: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET,
+          element: <BusinessListingsPage type="digital_asset" />
+        },
+        {
+          path: `${APP_ROUTES.MARKETPLACE.DETAIL}/:id`,
+          element: <EntityDetailPage />
+        },
+        {
+          path: APP_ROUTES.STATIC.ABOUT,
+          element: <div>About Page</div>
+        },
+        {
+          path: APP_ROUTES.STATIC.CONTACT,
+          element: <div>Contact Page</div>
+        },
+        {
+          path: APP_ROUTES.STATIC.PRIVACY,
+          element: <div>Privacy Policy</div>
+        },
+        {
+          path: APP_ROUTES.STATIC.TERMS,
+          element: <div>Terms of Service</div>
+        },
+        {
+          path: APP_ROUTES.STATIC.FAQ,
+          element: <div>FAQ Page</div>
+        },
+        {
+          path: APP_ROUTES.STATIC.HOW_IT_WORKS,
+          element: <div>How It Works</div>
         }
       ]
     },
     {
       path: APP_ROUTES.DASHBOARD.ROOT,
       element: (
-        <ProtectedRoute>
-          <DashboardLayout />
-        </ProtectedRoute>
+        <ProtectedRoute
+          element={<DashboardLayout />}
+          isAuthenticated={isAuthenticated}
+          redirectPath={APP_ROUTES.HOME}
+        />
       ),
       children: [
         {
@@ -95,6 +108,26 @@ export const createRouter = () => {
         {
           path: APP_ROUTES.DASHBOARD.ENTITIES.split('/dashboard/')[1],
           element: <EntitiesPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.ADD_ENTITY.split('/dashboard/')[1],
+          element: <AddEntityPage />
+        },
+        {
+          path: `${APP_ROUTES.DASHBOARD.EDIT_ENTITY.split('/dashboard/')[1]}/:id`,
+          element: <EditEntityPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.CONNECTS.split('/dashboard/')[1],
+          element: <ConnectsPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.MESSAGES.split('/dashboard/')[1],
+          element: <MessagesPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.SETTINGS.split('/dashboard/')[1],
+          element: <SettingsPage />
         }
       ]
     },
