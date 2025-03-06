@@ -23,12 +23,8 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../services/firebase/config';
 
-// Authentication Providers
-const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
-
-// Authentication Context
-const AuthContext = createContext();
+// Create AuthContext
+export const AuthContext = createContext();
 
 // Authentication Provider Component
 export const AuthProvider = ({ children }) => {
@@ -120,7 +116,7 @@ export const AuthProvider = ({ children }) => {
     clearError();
     
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
       await createUserDocument(result.user);
       return result.user;
     } catch (error) {
@@ -133,7 +129,7 @@ export const AuthProvider = ({ children }) => {
     clearError();
     
     try {
-      const result = await signInWithPopup(auth, facebookProvider);
+      const result = await signInWithPopup(auth, new FacebookAuthProvider());
       await createUserDocument(result.user);
       return result.user;
     } catch (error) {
@@ -227,5 +223,3 @@ export const useAuth = () => {
   
   return context;
 };
-
-export default AuthProvider;
