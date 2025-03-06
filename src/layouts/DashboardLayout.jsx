@@ -28,6 +28,10 @@ function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [entityMenuOpen, setEntityMenuOpen] = useState(false);
 
+  // Safe access to user profile data
+  const displayName = userProfile?.displayName || 'User';
+  const userInitial = displayName[0]?.toUpperCase() || 'U';
+
   // Handle logout
   const handleLogout = async () => {
     try {
@@ -119,10 +123,10 @@ function DashboardLayout() {
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex items-center">
             <span className="text-sm text-gray-600 mr-2">
-              {userProfile?.displayName || 'User'}
+              {displayName}
             </span>
             <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-              {userProfile?.displayName?.[0]?.toUpperCase() || 'U'}
+              {userInitial}
             </div>
           </div>
           <Link to={APP_ROUTES.DASHBOARD.ADD_ENTITY} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center">

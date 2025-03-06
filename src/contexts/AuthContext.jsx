@@ -20,6 +20,15 @@ import {
 // Create the auth context
 export const AuthContext = createContext();
 
+// Custom hook to use the auth context - EXPORTED BEFORE AuthProvider
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
 // Auth provider component
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -33,6 +42,7 @@ export const AuthProvider = ({ children }) => {
   // Effect to listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth state changed:", user ? user.uid : "No user");
       setCurrentUser(user);
       
       if (user) {
@@ -269,7 +279,7 @@ export const AuthProvider = ({ children }) => {
     verifyOtp,
     sendWhatsAppOtp,
     verifyWhatsAppOtp,
-    signout,
+    logout: signout,  // Export as logout for consistency
     passwordReset,
     updateProfile,
     refreshUserProfile,
@@ -281,15 +291,6 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-// Custom hook to use the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 };
 
 export default AuthProvider;

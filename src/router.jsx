@@ -21,16 +21,23 @@ const SettingsPage = React.lazy(() => import('./pages/dashboard/Settings'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 
 // Protected route component
-const ProtectedRoute = ({ element, isAuthenticated, redirectPath = APP_ROUTES.HOME }) => {
-  return isAuthenticated ? element : <Navigate to={redirectPath} replace />;
+const ProtectedRoute = ({ element, isAuthenticated, redirectPath = APP_ROUTES.HOME, openAuthModal }) => {
+  if (!isAuthenticated) {
+    // Open login modal and redirect
+    setTimeout(() => {
+      openAuthModal('login');
+    }, 100);
+    return <Navigate to={redirectPath} replace />;
+  }
+  return element;
 };
 
-// Router creator function (accepts auth state)
-export const createRouter = (isAuthenticated) => {
+// Router creator function (accepts auth state and modal control)
+export const createRouter = (isAuthenticated, openAuthModal) => {
   return createBrowserRouter([
     {
       path: '/',
-      element: <MainLayout />,
+      element: <MainLayout openAuthModal={openAuthModal} />,
       errorElement: <NotFoundPage />,
       children: [
         {
@@ -94,6 +101,7 @@ export const createRouter = (isAuthenticated) => {
           element={<DashboardLayout />}
           isAuthenticated={isAuthenticated}
           redirectPath={APP_ROUTES.HOME}
+          openAuthModal={openAuthModal}
         />
       ),
       children: [

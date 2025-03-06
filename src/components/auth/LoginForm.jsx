@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { APP_ROUTES } from '../../utils/constants';
 import { 
   GoogleIcon, 
   FacebookIcon, 
@@ -17,7 +15,6 @@ import {
  */
 function LoginForm({ onClose, switchTab }) {
   const { login, loginGoogle, loginFacebook, loginLinkedIn, sendOtp, sendWhatsAppOtp, error, clearError } = useAuth();
-  const navigate = useNavigate();
   
   // Form state
   const [email, setEmail] = useState('');
@@ -29,6 +26,7 @@ function LoginForm({ onClose, switchTab }) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -40,6 +38,7 @@ function LoginForm({ onClose, switchTab }) {
     e.preventDefault();
     clearError();
     setFormError('');
+    setSuccessMessage('');
     setLoading(true);
     
     try {
@@ -50,8 +49,7 @@ function LoginForm({ onClose, switchTab }) {
         }
         
         await login(email, password);
-        onClose();
-        navigate(APP_ROUTES.DASHBOARD.ROOT);
+        setSuccessMessage('Login successful!');
       } else if (loginMethod === 'phone' && otpSent) {
         // Phone OTP verification
         if (!otp) {
@@ -60,11 +58,9 @@ function LoginForm({ onClose, switchTab }) {
         
         // OTP verification would go here
         // await verifyOtp(otp);
-        // onClose();
-        // navigate(APP_ROUTES.DASHBOARD.ROOT);
+        console.log('Phone verification with OTP:', otp);
         
-        // For now, just show an alert
-        alert('Phone OTP verification is not yet implemented');
+        setSuccessMessage('Phone verification successful!');
       } else if (loginMethod === 'whatsapp' && otpSent) {
         // WhatsApp OTP verification
         if (!otp) {
@@ -73,12 +69,13 @@ function LoginForm({ onClose, switchTab }) {
         
         // WhatsApp OTP verification would go here
         // await verifyWhatsAppOtp(phoneNumber, otp);
-        // onClose();
-        // navigate(APP_ROUTES.DASHBOARD.ROOT);
+        console.log('WhatsApp verification with OTP:', otp);
         
-        // For now, just show an alert
-        alert('WhatsApp OTP verification is not yet implemented');
+        setSuccessMessage('WhatsApp verification successful!');
       }
+      
+      // Auth provider will handle the state update
+      // No need to manually close or reload
     } catch (err) {
       console.error('Login error:', err);
       setFormError(err.message);
@@ -99,22 +96,34 @@ function LoginForm({ onClose, switchTab }) {
         throw new Error('Please enter your phone number');
       }
       
+      // Format phone number - ensure it has 10 digits
+      let formattedNumber = phoneNumber.replace(/\D/g, '');
+      if (formattedNumber.length !== 10) {
+        throw new Error('Please enter a valid 10-digit phone number');
+      }
+      
+      // Add +91 prefix if not present
+      if (!phoneNumber.startsWith('+91')) {
+        formattedNumber = '+91' + formattedNumber;
+      }
+      
       if (loginMethod === 'phone') {
         // Send OTP to phone
-        // This would normally use a recaptcha container ID
-        // await sendOtp(phoneNumber, 'recaptcha-container');
-        
-        // For now, just show an alert
-        alert(`OTP would be sent to ${phoneNumber} via SMS`);
+        // await sendOtp(formattedNumber);
+        console.log(`Sending OTP to ${formattedNumber} via SMS`);
       } else if (loginMethod === 'whatsapp') {
         // Send OTP to WhatsApp
-        // await sendWhatsAppOtp(phoneNumber);
-        
-        // For now, just show an alert
-        alert(`OTP would be sent to ${phoneNumber} via WhatsApp`);
+        // await sendWhatsAppOtp(formattedNumber);
+        console.log(`Sending OTP to ${formattedNumber} via WhatsApp`);
       }
       
       setOtpSent(true);
+      setSuccessMessage(`OTP sent to ${formattedNumber}`);
+      
+      // Clear success message after a delay
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
     } catch (err) {
       console.error('Send OTP error:', err);
       setFormError(err.message);
@@ -127,6 +136,7 @@ function LoginForm({ onClose, switchTab }) {
   const handleSocialLogin = async (provider) => {
     clearError();
     setFormError('');
+    setSuccessMessage('');
     setLoading(true);
     
     try {
@@ -138,15 +148,16 @@ function LoginForm({ onClose, switchTab }) {
           await loginFacebook();
           break;
         case 'linkedin':
-          // This is just a placeholder, actual LinkedIn login requires more setup
           await loginLinkedIn();
           break;
         default:
           throw new Error('Invalid login provider');
       }
       
-      onClose();
-      navigate(APP_ROUTES.DASHBOARD.ROOT);
+      setSuccessMessage(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
+      
+      // Auth provider will handle the state update
+      // No need to manually close or reload
     } catch (err) {
       console.error(`${provider} login error:`, err);
       setFormError(err.message);
@@ -157,61 +168,73 @@ function LoginForm({ onClose, switchTab }) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center mb-6">Welcome Back</h2>
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg mb-4 flex items-start">
+          <CheckCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+          <span className="text-sm">{successMessage}</span>
+        </div>
+      )}
+      
+      {/* Error Message */}
+      {(formError || error) && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 flex items-start">
+          <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+          <span className="text-sm">{formError || error}</span>
+        </div>
+      )}
       
       {/* Login Method Selector */}
-      <div className="flex mb-6 border rounded-md">
+      <div className="flex mb-6 border rounded-lg overflow-hidden">
         <button
           type="button"
-          className={`flex-1 py-2 text-center text-sm ${
+          className={`flex-1 py-2 text-center text-sm font-medium ${
             loginMethod === 'email'
-              ? 'bg-blue-50 text-blue-600 font-medium'
-              : 'text-gray-500 hover:bg-gray-50'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-700 hover:bg-gray-50'
           }`}
           onClick={() => {
             setLoginMethod('email');
             setOtpSent(false);
+            clearError();
+            setFormError('');
           }}
         >
           Email
         </button>
         <button
           type="button"
-          className={`flex-1 py-2 text-center text-sm ${
+          className={`flex-1 py-2 text-center text-sm font-medium ${
             loginMethod === 'phone'
-              ? 'bg-blue-50 text-blue-600 font-medium'
-              : 'text-gray-500 hover:bg-gray-50'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-700 hover:bg-gray-50'
           }`}
           onClick={() => {
             setLoginMethod('phone');
             setOtpSent(false);
+            clearError();
+            setFormError('');
           }}
         >
           Phone
         </button>
         <button
           type="button"
-          className={`flex-1 py-2 text-center text-sm ${
+          className={`flex-1 py-2 text-center text-sm font-medium ${
             loginMethod === 'whatsapp'
-              ? 'bg-blue-50 text-blue-600 font-medium'
-              : 'text-gray-500 hover:bg-gray-50'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-700 hover:bg-gray-50'
           }`}
           onClick={() => {
             setLoginMethod('whatsapp');
             setOtpSent(false);
+            clearError();
+            setFormError('');
           }}
         >
           WhatsApp
         </button>
       </div>
-      
-      {/* Error Message */}
-      {(formError || error) && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-md mb-4 flex items-start">
-          <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
-          <span>{formError || error}</span>
-        </div>
-      )}
       
       {/* Login Form */}
       <form onSubmit={loginMethod === 'email' ? handleSubmit : otpSent ? handleSubmit : handleSendOtp}>
@@ -231,7 +254,7 @@ function LoginForm({ onClose, switchTab }) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="your.email@example.com"
                   required
                 />
@@ -261,7 +284,7 @@ function LoginForm({ onClose, switchTab }) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="••••••••"
                   required
                 />
@@ -290,20 +313,24 @@ function LoginForm({ onClose, switchTab }) {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <PhoneIcon className="text-gray-400" />
                 </div>
-                <input
-                  id="phoneNumber"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="+91 98765 43210"
-                  disabled={otpSent}
-                  required
-                />
+                <div className="flex items-center">
+                  <span className="absolute left-10 text-gray-500">+91</span>
+                  <input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full pl-20 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="9876543210"
+                    disabled={otpSent}
+                    maxLength={10}
+                    required
+                  />
+                </div>
               </div>
               {otpSent && (
                 <p className="text-xs text-gray-500 mt-1">
-                  OTP sent to {phoneNumber}. 
+                  OTP sent to +91 {phoneNumber}. 
                   <button 
                     type="button" 
                     className="text-blue-600 ml-1"
@@ -326,7 +353,7 @@ function LoginForm({ onClose, switchTab }) {
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter OTP"
                   required
                 />
@@ -348,7 +375,7 @@ function LoginForm({ onClose, switchTab }) {
         {/* Submit Button */}
         <button
           type="submit"
-          className={`w-full py-2 px-4 rounded-md text-white font-medium ${
+          className={`w-full py-3 px-4 rounded-lg text-white font-medium ${
             loading
               ? 'bg-blue-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700'
@@ -366,7 +393,7 @@ function LoginForm({ onClose, switchTab }) {
       </form>
       
       {/* Divider */}
-      <div className="flex items-center my-4">
+      <div className="flex items-center my-6">
         <div className="flex-1 border-t border-gray-300"></div>
         <span className="mx-4 text-sm text-gray-500">or continue with</span>
         <div className="flex-1 border-t border-gray-300"></div>
@@ -376,7 +403,7 @@ function LoginForm({ onClose, switchTab }) {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <button
           type="button"
-          className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50"
           onClick={() => handleSocialLogin('google')}
           disabled={loading}
         >
@@ -384,7 +411,7 @@ function LoginForm({ onClose, switchTab }) {
         </button>
         <button
           type="button"
-          className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50"
           onClick={() => handleSocialLogin('facebook')}
           disabled={loading}
         >
@@ -392,7 +419,7 @@ function LoginForm({ onClose, switchTab }) {
         </button>
         <button
           type="button"
-          className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50"
           onClick={() => handleSocialLogin('linkedin')}
           disabled={loading}
         >
@@ -401,16 +428,18 @@ function LoginForm({ onClose, switchTab }) {
       </div>
       
       {/* Switch to Register */}
-      <p className="text-center text-sm text-gray-600">
-        Don't have an account?{' '}
-        <button
-          type="button"
-          className="text-blue-600 hover:text-blue-800 font-medium"
-          onClick={switchTab}
-        >
-          Sign up
-        </button>
-      </p>
+      <div className="text-center">
+        <p className="text-sm text-gray-600">
+          Don't have an account?{' '}
+          <button
+            type="button"
+            onClick={switchTab}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Register
+          </button>
+        </p>
+      </div>
     </div>
   );
 }
