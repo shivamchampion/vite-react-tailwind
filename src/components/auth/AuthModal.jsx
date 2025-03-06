@@ -18,13 +18,19 @@ function AuthModal({ isOpen, onClose, activeTab = 'login', setActiveTab }) {
   const modalRef = useRef(null);
   const { currentUser } = useAuth();
   const [closingAnimation, setClosingAnimation] = useState(false);
+  const [authSuccess, setAuthSuccess] = useState(false);
 
   // Close modal when user logs in
   useEffect(() => {
-    if (currentUser && isOpen) {
-      // Give a small delay to show success message
+    if (currentUser && isOpen && !authSuccess) {
+      // Set success state first
+      setAuthSuccess(true);
+      
+      // Give a delay to show success message before closing
       const timer = setTimeout(() => {
         handleClose();
+        // Reset auth success state after modal closes
+        setTimeout(() => setAuthSuccess(false), 500);
       }, 1500);
       
       return () => clearTimeout(timer);

@@ -50,6 +50,17 @@ function LoginForm({ onClose, switchTab }) {
           throw new Error('Please enter both email and password');
         }
         
+        // For testing purposes: simulate a login
+        if (process.env.NODE_ENV === 'development' && email === 'test@example.com' && password === 'password') {
+          console.log('Development mode: Simulating successful login');
+          setSuccessMessage('Login successful!');
+          
+          // Wait a moment before proceeding
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return;
+        }
+        
+        // Actual login
         await login(email, password);
         setSuccessMessage('Login successful!');
         
@@ -142,6 +153,16 @@ function LoginForm({ onClose, switchTab }) {
     setLoading(true);
     
     try {
+      // For development mode: simulate successful login
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Development mode: Simulating successful ${provider} login`);
+        setSuccessMessage(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
+        
+        // Wait a moment before proceeding
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return;
+      }
+      
       switch (provider) {
         case 'google':
           await loginGoogle();

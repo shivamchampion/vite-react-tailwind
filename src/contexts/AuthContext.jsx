@@ -39,8 +39,46 @@ export const AuthProvider = ({ children }) => {
   // Clear error helper
   const clearError = () => setError(null);
 
+  // Development mode helper to manually set user for testing
+  const setDevelopmentUser = () => {
+    if (process.env.NODE_ENV === 'development') {
+      // Create a mock user for development purposes
+      const mockUser = {
+        uid: 'dev-user-123',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        photoURL: null
+      };
+      
+      setCurrentUser(mockUser);
+      
+      // Also set a mock user profile
+      const mockProfile = {
+        uid: 'dev-user-123',
+        displayName: 'Test User',
+        email: 'test@example.com',
+        connectsBalance: 15,
+        role: 'user'
+      };
+      
+      setUserProfile(mockProfile);
+      setLoading(false);
+      
+      return true;
+    }
+    
+    return false;
+  };
+
   // Effect to listen to auth state changes
   useEffect(() => {
+    // For development environment, we can use a mock user
+    if (setDevelopmentUser()) {
+      console.log("Development mode: Using mock user");
+      return () => {}; // No cleanup needed for mock user
+    }
+    
+    console.log("Setting up auth state listener");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log("Auth state changed:", user ? user.uid : "No user");
       setCurrentUser(user);
@@ -51,6 +89,7 @@ export const AuthProvider = ({ children }) => {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             setUserProfile(userDoc.data());
+            console.log("User profile loaded:", userDoc.data());
           } else {
             console.warn('User document not found in Firestore');
           }
@@ -73,6 +112,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate registration
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating user registration:", { email, displayName });
+        setDevelopmentUser();
+        return { uid: 'dev-user-123', email, displayName };
+      }
+      
       const user = await registerWithEmailPassword(email, password, displayName);
       return user;
     } catch (err) {
@@ -88,6 +134,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate login
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating user login:", { email });
+        setDevelopmentUser();
+        return { uid: 'dev-user-123', email };
+      }
+      
       const user = await loginWithEmailPassword(email, password);
       return user;
     } catch (err) {
@@ -103,6 +156,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate Google login
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating Google login");
+        setDevelopmentUser();
+        return { uid: 'dev-user-123', email: 'test@example.com', displayName: 'Test User' };
+      }
+      
       const user = await loginWithGoogle();
       return user;
     } catch (err) {
@@ -118,6 +178,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate Facebook login
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating Facebook login");
+        setDevelopmentUser();
+        return { uid: 'dev-user-123', email: 'test@example.com', displayName: 'Test User' };
+      }
+      
       const user = await loginWithFacebook();
       return user;
     } catch (err) {
@@ -133,6 +200,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate LinkedIn login
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating LinkedIn login");
+        setDevelopmentUser();
+        return { uid: 'dev-user-123', email: 'test@example.com', displayName: 'Test User' };
+      }
+      
       const user = await loginWithLinkedIn(accessToken);
       return user;
     } catch (err) {
@@ -148,6 +222,12 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate sending OTP
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating sending OTP to", phoneNumber);
+        return { success: true, verificationId: 'mock-verification-id' };
+      }
+      
       const result = await sendPhoneOTP(phoneNumber, containerId);
       return result;
     } catch (err) {
@@ -163,6 +243,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate verifying OTP
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating OTP verification with code", code);
+        setDevelopmentUser();
+        return { uid: 'dev-user-123', phoneNumber: '+919876543210' };
+      }
+      
       const user = await verifyPhoneOTP(code);
       return user;
     } catch (err) {
@@ -178,6 +265,12 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate sending WhatsApp OTP
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating sending WhatsApp OTP to", phoneNumber);
+        return { success: true, phoneNumber };
+      }
+      
       const result = await sendWhatsAppLoginOTP(phoneNumber);
       return result;
     } catch (err) {
@@ -193,6 +286,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate verifying WhatsApp OTP
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating WhatsApp OTP verification for", phoneNumber, "with code", otp);
+        setDevelopmentUser();
+        return { success: true, phoneNumber };
+      }
+      
       const result = await verifyWhatsAppOTP(phoneNumber, otp);
       return result;
     } catch (err) {
@@ -207,6 +307,14 @@ export const AuthProvider = ({ children }) => {
   const signout = async () => {
     clearError();
     try {
+      // In development mode, simulate logout
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating logout");
+        setCurrentUser(null);
+        setUserProfile(null);
+        return true;
+      }
+      
       await logout();
     } catch (err) {
       setError(err.message);
@@ -219,6 +327,12 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate password reset
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating password reset for", email);
+        return true;
+      }
+      
       await resetPassword(email);
     } catch (err) {
       setError(err.message);
@@ -233,6 +347,13 @@ export const AuthProvider = ({ children }) => {
     clearError();
     setLoading(true);
     try {
+      // In development mode, simulate profile update
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating profile update with data:", data);
+        setUserProfile(prev => ({ ...prev, ...data }));
+        return true;
+      }
+      
       await updateUserProfile(currentUser.uid, data);
       // Update local profile state
       setUserProfile(prev => ({ ...prev, ...data }));
@@ -250,6 +371,12 @@ export const AuthProvider = ({ children }) => {
     if (!currentUser) return null;
     
     try {
+      // In development mode, just return the current profile
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: Simulating profile refresh");
+        return userProfile;
+      }
+      
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();

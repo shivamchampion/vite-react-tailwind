@@ -26,6 +26,7 @@ function App() {
   
   // Close auth modal
   const closeAuthModal = () => {
+    console.log("Closing auth modal");
     setAuthModalOpen(false);
   };
 
@@ -37,6 +38,15 @@ function App() {
       openAuthModal,
       closeAuthModal
     });
+  }, [currentUser]);
+  
+  // Log auth state changes
+  useEffect(() => {
+    if (currentUser) {
+      console.log("User is authenticated:", currentUser.uid);
+    } else {
+      console.log("User is not authenticated");
+    }
   }, [currentUser]);
   
   // When in initial loading state, show minimal UI

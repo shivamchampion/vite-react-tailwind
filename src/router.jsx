@@ -22,18 +22,35 @@ const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 
 // Protected route loader
 const protectedLoader = ({ user, openAuthModal }) => () => {
+  // Added console log for debugging
+  console.log('Protected route loader running with user:', user ? `${user.displayName || 'Unnamed'} (${user.uid})` : 'No user');
+  
   if (!user) {
     // Trigger auth modal and redirect to home
     setTimeout(() => {
-      openAuthModal('login');
-    }, 100);
+      console.log('No user found, opening auth modal');
+      if (typeof openAuthModal === 'function') {
+        openAuthModal('login');
+      } else {
+        console.error('openAuthModal is not a function in protectedLoader');
+      }
+    }, 10); // Reduced delay for better user experience
+    
     return { redirect: APP_ROUTES.HOME };
   }
+  
   return null;
 };
 
 // Create router with auth state and modal controls
 export const createRouter = ({ user, openAuthModal, closeAuthModal }) => {
+  // Added console log for debugging
+  console.log('Creating router with:', { 
+    user: user ? `${user.displayName || 'Unnamed'} (${user.uid})` : 'No user',
+    hasOpenAuthModal: typeof openAuthModal === 'function',
+    hasCloseAuthModal: typeof closeAuthModal === 'function'
+  });
+
   return createBrowserRouter([
     {
       path: '/',
@@ -96,7 +113,19 @@ export const createRouter = ({ user, openAuthModal, closeAuthModal }) => {
     },
     {
       path: APP_ROUTES.DASHBOARD.ROOT,
-      element: user ? <DashboardLayout /> : <Navigate to={APP_ROUTES.HOME} replace />,
+      // Enhanced redirect handling with fallback for edge cases
+      element: user ? (
+        <DashboardLayout />
+      ) : (
+        <Navigate 
+          to={APP_ROUTES.HOME} 
+          replace 
+          state={{ 
+            authRedirect: true, 
+            intendedPath: APP_ROUTES.DASHBOARD.ROOT 
+          }} 
+        />
+      ),
       loader: protectedLoader({ user, openAuthModal }),
       children: [
         {

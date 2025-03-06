@@ -81,6 +81,23 @@ function RegisterForm({ onClose, switchTab }) {
           throw new Error('Please use a stronger password');
         }
         
+        // In development mode, simulate registration
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Development mode: Simulating registration with', { name, email });
+          
+          // Simulate successful registration
+          await new Promise(resolve => setTimeout(resolve, 800));
+          setSuccessMessage('Registration successful!');
+          
+          // Wait before proceeding
+          setTimeout(() => {
+            console.log('Registration successful, automatically proceeding to login');
+          }, 1500);
+          
+          return;
+        }
+        
+        // Actual registration
         await register(email, password, name);
         setSuccessMessage('Registration successful!');
       } else if (registerMethod === 'phone' && otpSent) {
@@ -181,6 +198,17 @@ function RegisterForm({ onClose, switchTab }) {
     setLoading(true);
     
     try {
+      // In development mode, simulate social login
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Development mode: Simulating ${provider} login for registration`);
+        
+        // Simulate successful social login
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setSuccessMessage(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
+        
+        return;
+      }
+      
       switch (provider) {
         case 'google':
           await loginGoogle();
@@ -290,6 +318,7 @@ function RegisterForm({ onClose, switchTab }) {
             </div>
             <input
               id="name"
+              name="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -313,6 +342,7 @@ function RegisterForm({ onClose, switchTab }) {
                 </div>
                 <input
                   id="register-email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -334,6 +364,7 @@ function RegisterForm({ onClose, switchTab }) {
                 </div>
                 <input
                   id="register-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -400,6 +431,7 @@ function RegisterForm({ onClose, switchTab }) {
                 </div>
                 <input
                   id="confirm-password"
+                  name="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -432,6 +464,7 @@ function RegisterForm({ onClose, switchTab }) {
                   <span className="absolute left-10 text-gray-500">+91</span>
                   <input
                     id="register-phone"
+                    name="phoneNumber"
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
@@ -465,6 +498,7 @@ function RegisterForm({ onClose, switchTab }) {
                 </label>
                 <input
                   id="register-otp"
+                  name="otp"
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
@@ -492,6 +526,7 @@ function RegisterForm({ onClose, switchTab }) {
           <div className="flex items-start">
             <input
               id="terms"
+              name="terms"
               type="checkbox"
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
               required
