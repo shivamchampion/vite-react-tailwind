@@ -23,51 +23,44 @@ import {
   Mail,
   ChevronRight,
   Home,
-  LogOut
+  LogOut,
+  PlusCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { APP_ROUTES } from '../../utils/constants';
 
 /**
- * Authentication buttons component with IMPROVED LOGIN/REGISTER BUTTONS
+ * Authentication buttons component
  */
 const AuthButtons = ({
-  showMobileMenu,
-  setShowMobileMenu,
   isAuthenticated,
-  user,
+  currentUser,
   openAuthModal,
   userRef,
   userOpen,
   setUserOpen,
   userItems,
-  handleLogout
+  handleLogout,
+  showMobileMenu,
+  setShowMobileMenu
 }) => {
   const navigate = useNavigate();
 
-  // Added console logs to track authentication state
-  console.log("AuthButtons component rendering with:", { 
-    isAuthenticated, 
-    user: user ? `${user.displayName} (${user.email})` : 'no user' 
-  });
-
-  // Handle login button click with better error handling
+  // Handle login button click
   const handleLoginClick = () => {
-    console.log("Login button clicked");
     if (typeof openAuthModal === 'function') {
       openAuthModal('login');
     } else {
-      console.error("openAuthModal is not a function or is undefined");
+      console.error("openAuthModal is not a function");
     }
   };
 
-  // Handle register button click with better error handling
+  // Handle register button click
   const handleRegisterClick = () => {
-    console.log("Register button clicked");
     if (typeof openAuthModal === 'function') {
       openAuthModal('register');
     } else {
-      console.error("openAuthModal is not a function or is undefined");
+      console.error("openAuthModal is not a function");
     }
   };
 
@@ -87,22 +80,22 @@ const AuthButtons = ({
 
       {isAuthenticated ? (
         <>
-          {/* User Profile Button - FIXED: Showing only user's name */}
+          {/* User Profile Button */}
           <div className="relative" ref={userRef}>
             <button
               className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 items-center text-xs sm:text-sm flex whitespace-nowrap px-2 sm:px-3 py-2 rounded"
               onClick={() => setUserOpen(!userOpen)}
             >
               <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
-              <span>{user?.displayName || 'User'}</span>
+              <span>{currentUser?.displayName || 'User'}</span>
               <ChevronDown className={`ml-1 w-3 h-3 transition-transform ${userOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {userOpen && (
               <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
                 <div className="py-2 px-4 border-b border-gray-100">
-                  <p className="font-medium text-gray-800">{user?.displayName || 'User'}</p>
-                  <p className="text-xs text-gray-500">{user?.email || ''}</p>
+                  <p className="font-medium text-gray-800">{currentUser?.displayName || 'User'}</p>
+                  <p className="text-xs text-gray-500">{currentUser?.email || ''}</p>
                 </div>
                 <div className="py-1">
                   {userItems.map((item) => (
@@ -110,6 +103,7 @@ const AuthButtons = ({
                       key={item.name}
                       to={item.href}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700"
+                      onClick={() => setUserOpen(false)}
                     >
                       {item.name}
                     </Link>
@@ -117,15 +111,22 @@ const AuthButtons = ({
                   <Link
                     to="/dashboard/add-entity"
                     className="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 font-medium"
+                    onClick={() => setUserOpen(false)}
                   >
                     + Add New Listing
                   </Link>
                   <div className="border-t border-gray-100 my-1"></div>
                   <button
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                    onClick={handleLogout}
+                    onClick={() => {
+                      handleLogout();
+                      setUserOpen(false);
+                    }}
                   >
-                    Sign Out
+                    <span className="flex items-center">
+                      <LogOut size={16} className="mr-2" />
+                      Sign Out
+                    </span>
                   </button>
                 </div>
               </div>
@@ -172,203 +173,6 @@ const AuthButtons = ({
 };
 
 /**
- * Main site header component with responsive navigation
- */
-const SiteHeader = ({ openAuthModal }) => {
-  // Additional logging to debug props
-  console.log("SiteHeader rendering with openAuthModal:", 
-    typeof openAuthModal === 'function' ? 'function' : typeof openAuthModal
-  );
-  
-  // Authentication state
-  const { currentUser, logout } = useAuth();
-  const isAuthenticated = !!currentUser;
-  const navigate = useNavigate();
-
-  // Log user state for debugging
-  useEffect(() => {
-    console.log("SiteHeader auth state:", { 
-      isAuthenticated, 
-      currentUser: currentUser ? `${currentUser.displayName || 'Unnamed'} (${currentUser.email || 'No email'})` : 'No user' 
-    });
-  }, [isAuthenticated, currentUser]);
-
-  // State for mobile menu and dropdowns
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [companyOpen, setCompanyOpen] = useState(false);
-  const [userOpen, setUserOpen] = useState(false);
-
-  // Refs for dropdown menus (for detecting clicks outside)
-  const resourcesRef = useRef(null);
-  const companyRef = useRef(null);
-  const userRef = useRef(null);
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (resourcesRef.current && !resourcesRef.current.contains(event.target)) {
-        setResourcesOpen(false);
-      }
-      if (companyRef.current && !companyRef.current.contains(event.target)) {
-        setCompanyOpen(false);
-      }
-      if (userRef.current && !userRef.current.contains(event.target)) {
-        setUserOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Handle logout - FIXED: Using proper navigation
-  const handleLogout = async () => {
-    try {
-      console.log("Logging out user");
-      await logout();
-      navigate('/');
-      // Close the user dropdown after logout
-      setUserOpen(false);
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
-  // Resources dropdown items - platform-focused content
-  const resourcesItems = [
-    { name: "How to List Your Business", href: "/guides/list-business", icon: <Briefcase size={16} /> },
-    { name: "How to Find Investments", href: "/guides/find-investments", icon: <Search size={16} /> },
-    { name: "How to Value Your Business", href: "/tools/valuation", icon: <BarChart3 size={16} /> },
-    { name: "Platform Guide", href: "/platform-guide", icon: <HelpCircle size={16} /> },
-    { name: "Success Stories", href: "/success-stories", icon: <Award size={16} /> },
-    { name: "Market Insights", href: "/market-insights", icon: <LineChart size={16} /> }
-  ];
-
-  // Company dropdown items - original structure
-  const companyItems = [
-    { name: "About Us", href: "/about", icon: <Info size={16} /> },
-    { name: "Our Team", href: "/team", icon: <Users size={16} /> },
-    { name: "Testimonials", href: "/testimonials", icon: <MessageSquare size={16} /> },
-    { name: "Contact Us", href: "/contact", icon: <Mail size={16} /> }
-  ];
-
-  // User dropdown items
-  const userItems = [
-    { name: "Dashboard", href: "/dashboard", icon: <Home size={16} /> },
-    { name: "My Profile", href: "/dashboard/profile", icon: <User size={16} /> },
-    { name: "My Listings", href: "/dashboard/my-entities", icon: <Building size={16} /> },
-    { name: "Add New Listing", href: "/dashboard/add-entity", icon: <TrendingUp size={16} /> },
-    { name: "Settings", href: "/dashboard/settings", icon: <HelpCircle size={16} /> },
-  ];
-
-  // Main navigation items - using your existing categories plus Home
-  const mainNavItems = [
-    { name: "Home", href: "/", icon: <Home className="w-4 h-4" /> },
-    { name: "Businesses", href: "/businesses", icon: <Building className="w-4 h-4" /> },
-    { name: "Franchises", href: "/franchises", icon: <TrendingUp className="w-4 h-4" /> },
-    { name: "Startups", href: "/startups", icon: <Lightbulb className="w-4 h-4" /> },
-    { name: "Investors", href: "/investors", icon: <Users className="w-4 h-4" /> },
-    { name: "Digital Assets", href: "/digital-assets", icon: <Globe className="w-4 h-4" /> }
-  ];
-
-  // Ensure openAuthModal is properly wrapped if necessary
-  const handleOpenAuthModal = (tab) => {
-    console.log("SiteHeader: handleOpenAuthModal called with tab:", tab);
-    if (typeof openAuthModal === 'function') {
-      openAuthModal(tab);
-    } else {
-      console.error("openAuthModal is not a function:", openAuthModal);
-    }
-  };
-
-  return (
-    <header className="bg-white sticky top-0 z-50 shadow-sm">
-      {/* Main header row */}
-      <div className="border-b border-gray-200 bg-gradient-to-r from-white via-white to-indigo-50">
-        <div className="max-w-[2560px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
-          <div className="flex items-center justify-between h-16 lg:h-18">
-            {/* Logo */}
-            <div className="flex-shrink-0 flex items-center mr-2 sm:mr-4">
-              <Link to="/">
-                <img src="/src/logo.png" alt="Business Options Logo" className="h-8 sm:h-10 md:h-12" />
-              </Link>
-            </div>
-
-            {/* Desktop Navigation - visible on 2xl screens */}
-            <div className="hidden 2xl:flex items-center space-x-1 mx-4 flex-grow justify-center">
-              <DesktopNavigation
-                mainNavItems={mainNavItems}
-                resourcesOpen={resourcesOpen}
-                setResourcesOpen={setResourcesOpen}
-                companyOpen={companyOpen}
-                setCompanyOpen={setCompanyOpen}
-                userOpen={userOpen}
-                setUserOpen={setUserOpen}
-                resourcesRef={resourcesRef}
-                companyRef={companyRef}
-                userRef={userRef}
-                resourcesItems={resourcesItems}
-                companyItems={companyItems}
-                userItems={userItems}
-                isAuthenticated={isAuthenticated}
-                onLogout={handleLogout}
-              />
-            </div>
-
-            {/* Auth Buttons */}
-            <AuthButtons
-              showMobileMenu={mobileMenuOpen}
-              setShowMobileMenu={setMobileMenuOpen}
-              isAuthenticated={isAuthenticated}
-              user={currentUser}
-              openAuthModal={handleOpenAuthModal}
-              userRef={userRef}
-              userOpen={userOpen}
-              setUserOpen={setUserOpen}
-              userItems={userItems}
-              handleLogout={handleLogout}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Secondary Navigation Row - Only visible on xl screens */}
-      <SecondaryNavigation
-        mainNavItems={mainNavItems}
-        resourcesRef={resourcesRef}
-        companyRef={companyRef}
-        userRef={userRef}
-        resourcesOpen={resourcesOpen}
-        setResourcesOpen={setResourcesOpen}
-        companyOpen={companyOpen}
-        setCompanyOpen={setCompanyOpen}
-        userOpen={userOpen}
-        setUserOpen={setUserOpen}
-        isAuthenticated={isAuthenticated}
-      />
-
-      {/* Mobile/Tablet Menu */}
-      <MobileNavMenu
-        isOpen={mobileMenuOpen}
-        mainNavItems={mainNavItems}
-        resourcesItems={resourcesItems}
-        companyItems={companyItems}
-        userItems={userItems}
-        isAuthenticated={isAuthenticated}
-        onLogout={handleLogout}
-        openAuthModal={handleOpenAuthModal}
-      />
-    </header>
-  );
-};
-
-// Rest of the component implementations...
-// DesktopNavigation, MobileNavMenu, SecondaryNavigation
-
-/**
  * Desktop navigation component
  */
 const DesktopNavigation = ({
@@ -386,7 +190,8 @@ const DesktopNavigation = ({
   companyItems,
   userItems,
   isAuthenticated,
-  onLogout
+  onLogout,
+  currentUser
 }) => (
   <nav className="flex items-center space-x-1">
     {mainNavItems.map((item) => (
@@ -418,8 +223,8 @@ const DesktopNavigation = ({
           </div>
           <div className="py-1">
             {resourcesItems.map((item) => (
-              <Link 
-                key={item.name} 
+              <Link
+                key={item.name}
                 to={item.href}
                 className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
               >
@@ -462,8 +267,8 @@ const DesktopNavigation = ({
           </div>
           <div className="py-1">
             {companyItems.map((item) => (
-              <Link 
-                key={item.name} 
+              <Link
+                key={item.name}
                 to={item.href}
                 className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
               >
@@ -478,8 +283,8 @@ const DesktopNavigation = ({
       )}
     </div>
 
-    {/* User Dropdown (only when authenticated) */}
-    {isAuthenticated && userRef && (
+    {/* My Account Dropdown (only when authenticated) */}
+    {isAuthenticated && (
       <div className="relative" ref={userRef}>
         <button
           className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${userOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
@@ -490,7 +295,7 @@ const DesktopNavigation = ({
           }}
         >
           <User className="w-4 h-4 flex-shrink-0" />
-          <span className="ml-1.5">My Account</span>
+          <span className="ml-1.5">{currentUser?.displayName || 'My Account'}</span>
           <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${userOpen ? 'rotate-180' : ''}`} />
         </button>
 
@@ -498,11 +303,12 @@ const DesktopNavigation = ({
           <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
             <div className="py-2 px-3 bg-gradient-to-r from-indigo-50 to-indigo-100 border-b border-indigo-100">
               <h3 className="text-sm font-medium text-indigo-800">My Account</h3>
+              <p className="text-xs text-gray-500 mt-0.5">{currentUser?.email || ''}</p>
             </div>
             <div className="py-1">
               {userItems.map((item) => (
-                <Link 
-                  key={item.name} 
+                <Link
+                  key={item.name}
                   to={item.href}
                   className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
                 >
@@ -512,11 +318,21 @@ const DesktopNavigation = ({
                   <span>{item.name}</span>
                 </Link>
               ))}
-              <button
-                onClick={onLogout}
-                className="flex items-center w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
+              <Link
+                to="/dashboard/add-entity"
+                className="flex items-center px-4 py-3 text-sm text-indigo-600 font-medium hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
               >
                 <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
+                  <PlusCircle size={16} />
+                </span>
+                <span>Add New Listing</span>
+              </Link>
+              <div className="border-t border-gray-100 my-1"></div>
+              <button
+                onClick={onLogout}
+                className="flex items-center w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 border-l-2 border-transparent hover:border-red-500"
+              >
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-red-600 bg-red-100 rounded-md mr-3">
                   <LogOut size={16} />
                 </span>
                 <span>Sign Out</span>
@@ -540,7 +356,8 @@ const MobileNavMenu = ({
   userItems,
   isAuthenticated,
   onLogout,
-  openAuthModal
+  openAuthModal,
+  setMobileMenuOpen
 }) => (
   <div className={`xl:hidden bg-white border-t border-gray-200 shadow-lg animate-slideDown ${isOpen ? 'block' : 'hidden'}`}>
     <div className="px-4 pt-2 pb-6 space-y-1">
@@ -566,6 +383,7 @@ const MobileNavMenu = ({
               key={item.name}
               to={item.href}
               className="flex items-center px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
                 {item.icon}
@@ -589,6 +407,7 @@ const MobileNavMenu = ({
                 key={item.name}
                 to={item.href}
                 className="flex items-center px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
                   {item.icon}
@@ -596,11 +415,24 @@ const MobileNavMenu = ({
                 <span>{item.name}</span>
               </Link>
             ))}
-            <button
-              onClick={onLogout}
-              className="flex items-center w-full text-left px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+            <Link
+              to="/dashboard/add-entity"
+              className="flex items-center px-3 py-2.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
+                <PlusCircle size={16} />
+              </span>
+              <span>Add New Listing</span>
+            </Link>
+            <button
+              onClick={() => {
+                onLogout();
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center w-full text-left px-3 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md text-sm"
+            >
+              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-red-600 bg-red-100 rounded-md mr-2">
                 <LogOut size={16} />
               </span>
               <span>Sign Out</span>
@@ -612,9 +444,9 @@ const MobileNavMenu = ({
           <button
             className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 py-2 px-4 rounded flex items-center justify-center"
             onClick={() => {
-              console.log("Mobile Login button clicked");
               if (typeof openAuthModal === 'function') {
                 openAuthModal('login');
+                setMobileMenuOpen(false);
               }
             }}
           >
@@ -625,9 +457,9 @@ const MobileNavMenu = ({
           <button
             className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md py-2 px-4 rounded flex items-center justify-center"
             onClick={() => {
-              console.log("Mobile Register button clicked");
               if (typeof openAuthModal === 'function') {
                 openAuthModal('register');
+                setMobileMenuOpen(false);
               }
             }}
           >
@@ -649,6 +481,7 @@ const MobileNavMenu = ({
               key={item.name}
               to={item.href}
               className="flex items-center px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
                 {item.icon}
@@ -671,6 +504,7 @@ const MobileNavMenu = ({
               key={item.name}
               to={item.href}
               className="flex items-center px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
                 {item.icon}
@@ -698,7 +532,8 @@ const SecondaryNavigation = ({
   setCompanyOpen,
   userOpen,
   setUserOpen,
-  isAuthenticated
+  isAuthenticated,
+  currentUser
 }) => (
   <div className="hidden xl:block 2xl:hidden border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-white to-indigo-50">
     <div className="max-w-[2560px] mx-auto px-8 xl:px-12">
@@ -754,7 +589,7 @@ const SecondaryNavigation = ({
                 }}
               >
                 <User className="w-4 h-4 flex-shrink-0" />
-                <span className="ml-1.5">My Account</span>
+                <span className="ml-1.5">{currentUser?.displayName || 'My Account'}</span>
                 <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${userOpen ? 'rotate-180' : ''}`} />
               </button>
             </div>
@@ -764,6 +599,185 @@ const SecondaryNavigation = ({
     </div>
   </div>
 );
+
+/**
+ * Main site header component with responsive navigation
+ */
+const SiteHeader = ({ openAuthModal }) => {
+  // Authentication state
+  const { currentUser, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // State for mobile menu and dropdowns
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [companyOpen, setCompanyOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
+
+  // Refs for dropdown menus (for detecting clicks outside)
+  const resourcesRef = useRef(null);
+  const companyRef = useRef(null);
+  const userRef = useRef(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (resourcesRef.current && !resourcesRef.current.contains(event.target)) {
+        setResourcesOpen(false);
+      }
+      if (companyRef.current && !companyRef.current.contains(event.target)) {
+        setCompanyOpen(false);
+      }
+      if (userRef.current && !userRef.current.contains(event.target)) {
+        setUserOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      console.log("Logging out user");
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  // Resources dropdown items
+  const resourcesItems = [
+    { name: "How to List Your Business", href: "/guides/list-business", icon: <Briefcase size={16} /> },
+    { name: "How to Find Investments", href: "/guides/find-investments", icon: <Search size={16} /> },
+    { name: "How to Value Your Business", href: "/tools/valuation", icon: <BarChart3 size={16} /> },
+    { name: "Platform Guide", href: "/platform-guide", icon: <HelpCircle size={16} /> },
+    { name: "Success Stories", href: "/success-stories", icon: <Award size={16} /> },
+    { name: "Market Insights", href: "/market-insights", icon: <LineChart size={16} /> }
+  ];
+
+  // Company dropdown items
+  const companyItems = [
+    { name: "About Us", href: "/about", icon: <Info size={16} /> },
+    { name: "Our Team", href: "/team", icon: <Users size={16} /> },
+    { name: "Testimonials", href: "/testimonials", icon: <MessageSquare size={16} /> },
+    { name: "Contact Us", href: "/contact", icon: <Mail size={16} /> }
+  ];
+
+  // User dropdown items
+  const userItems = [
+    { name: "Dashboard", href: "/dashboard", icon: <Home size={16} /> },
+    { name: "My Profile", href: "/dashboard/profile", icon: <User size={16} /> },
+    { name: "My Listings", href: "/dashboard/my-entities", icon: <Building size={16} /> },
+    { name: "Settings", href: "/dashboard/settings", icon: <HelpCircle size={16} /> },
+  ];
+
+  // Main navigation items
+  const mainNavItems = [
+    { name: "Home", href: "/", icon: <Home className="w-4 h-4" /> },
+    { name: "Businesses", href: "/businesses", icon: <Building className="w-4 h-4" /> },
+    { name: "Franchises", href: "/franchises", icon: <TrendingUp className="w-4 h-4" /> },
+    { name: "Startups", href: "/startups", icon: <Lightbulb className="w-4 h-4" /> },
+    { name: "Investors", href: "/investors", icon: <Users className="w-4 h-4" /> },
+    { name: "Digital Assets", href: "/digital-assets", icon: <Globe className="w-4 h-4" /> }
+  ];
+
+  // Ensure openAuthModal is properly wrapped
+  const handleOpenAuthModal = (tab) => {
+    if (typeof openAuthModal === 'function') {
+      openAuthModal(tab);
+    } else {
+      console.error("openAuthModal is not a function:", openAuthModal);
+    }
+  };
+
+  return (
+    <header className="bg-white sticky top-0 z-50 shadow-sm">
+      {/* Main header row */}
+      <div className="border-b border-gray-200 bg-gradient-to-r from-white via-white to-indigo-50">
+        <div className="max-w-[2560px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
+          <div className="flex items-center justify-between h-16 lg:h-18">
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center mr-2 sm:mr-4">
+              <Link to="/">
+                <img src="/src/logo.png" alt="Business Options Logo" className="h-8 sm:h-10 md:h-12" />
+              </Link>
+            </div>
+
+            {/* Desktop Navigation - visible on 2xl screens */}
+            <div className="hidden 2xl:flex items-center space-x-1 mx-4 flex-grow justify-center">
+              <DesktopNavigation
+                mainNavItems={mainNavItems}
+                resourcesOpen={resourcesOpen}
+                setResourcesOpen={setResourcesOpen}
+                companyOpen={companyOpen}
+                setCompanyOpen={setCompanyOpen}
+                userOpen={userOpen}
+                setUserOpen={setUserOpen}
+                resourcesRef={resourcesRef}
+                companyRef={companyRef}
+                userRef={userRef}
+                resourcesItems={resourcesItems}
+                companyItems={companyItems}
+                userItems={userItems}
+                isAuthenticated={isAuthenticated}
+                onLogout={handleLogout}
+                currentUser={currentUser}
+              />
+            </div>
+
+            {/* Auth Buttons */}
+            <AuthButtons
+              showMobileMenu={mobileMenuOpen}
+              setShowMobileMenu={setMobileMenuOpen}
+              isAuthenticated={isAuthenticated}
+              currentUser={currentUser}
+              openAuthModal={handleOpenAuthModal}
+              userRef={userRef}
+              userOpen={userOpen}
+              setUserOpen={setUserOpen}
+              userItems={userItems}
+              handleLogout={handleLogout}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Navigation Row - Only visible on xl screens */}
+      <SecondaryNavigation
+        mainNavItems={mainNavItems}
+        resourcesRef={resourcesRef}
+        companyRef={companyRef}
+        userRef={userRef}
+        resourcesOpen={resourcesOpen}
+        setResourcesOpen={setResourcesOpen}
+        companyOpen={companyOpen}
+        setCompanyOpen={setCompanyOpen}
+        userOpen={userOpen}
+        setUserOpen={setUserOpen}
+        isAuthenticated={isAuthenticated}
+        currentUser={currentUser}
+      />
+
+      {/* Mobile/Tablet Menu */}
+      <MobileNavMenu
+        isOpen={mobileMenuOpen}
+        mainNavItems={mainNavItems}
+        resourcesItems={resourcesItems}
+        companyItems={companyItems}
+        userItems={userItems}
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+        openAuthModal={handleOpenAuthModal}
+        setMobileMenuOpen={setMobileMenuOpen}
+      />
+    </header>
+  );
+};
 
 /**
  * Navigation Item component for consistent styling across different navigation areas
