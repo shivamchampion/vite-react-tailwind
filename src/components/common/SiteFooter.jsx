@@ -1,104 +1,98 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import { APP_ROUTES } from '../../utils/constants';
 
 /**
  * SiteFooter Component
- * Footer for the website with links and contact information
+ * Main site footer with links and copyright information
  */
 function SiteFooter() {
   const currentYear = new Date().getFullYear();
   
-  // Footer link groups
-  const footerLinks = [
-    {
-      title: 'Marketplace',
-      links: [
-        { name: 'Businesses', href: APP_ROUTES.MARKETPLACE.BUSINESS },
-        { name: 'Franchises', href: APP_ROUTES.MARKETPLACE.FRANCHISE },
-        { name: 'Startups', href: APP_ROUTES.MARKETPLACE.STARTUP },
-        { name: 'Investors', href: APP_ROUTES.MARKETPLACE.INVESTOR },
-        { name: 'Digital Assets', href: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET }
-      ]
-    },
-    {
-      title: 'Company',
-      links: [
-        { name: 'About Us', href: APP_ROUTES.STATIC.ABOUT },
-        { name: 'How It Works', href: APP_ROUTES.STATIC.HOW_IT_WORKS },
-        { name: 'Contact Us', href: APP_ROUTES.STATIC.CONTACT },
-        { name: 'FAQ', href: APP_ROUTES.STATIC.FAQ }
-      ]
-    },
-    {
-      title: 'Legal',
-      links: [
-        { name: 'Terms of Service', href: APP_ROUTES.STATIC.TERMS },
-        { name: 'Privacy Policy', href: APP_ROUTES.STATIC.PRIVACY },
-        { name: 'Cookie Policy', href: '#' },
-        { name: 'Disclaimer', href: '#' }
-      ]
-    }
-  ];
-  
-  // Social media links
+  const footerLinks = {
+    "Platform": [
+      { label: "How It Works", href: APP_ROUTES.STATIC.HOW_IT_WORKS },
+      { label: "Browse Businesses", href: APP_ROUTES.MARKETPLACE.BUSINESS },
+      { label: "Market Intelligence", href: "#market-insights" },
+      { label: "Verified Listings", href: "#verified-listings" }
+    ],
+    "Resources": [
+      { label: "Business Valuation", href: "#valuation" },
+      { label: "Investment Guides", href: "#guides" },
+      { label: "Market Reports", href: "#reports" },
+      { label: "Expert Advisors", href: "#advisors" }
+    ],
+    "Company": [
+      { label: "About Us", href: APP_ROUTES.STATIC.ABOUT },
+      { label: "Our Team", href: "#team" },
+      { label: "Careers", href: "#careers" },
+      { label: "Press", href: "#press" }
+    ],
+    "Support": [
+      { label: "Contact Us", href: APP_ROUTES.STATIC.CONTACT },
+      { label: "Help Center", href: "#help" },
+      { label: "FAQs", href: APP_ROUTES.STATIC.FAQ },
+      { label: "Feedback", href: "#feedback" }
+    ]
+  };
+
   const socialLinks = [
-    { name: 'Facebook', icon: <Facebook size={20} />, href: 'https://facebook.com' },
-    { name: 'Twitter', icon: <Twitter size={20} />, href: 'https://twitter.com' },
-    { name: 'Instagram', icon: <Instagram size={20} />, href: 'https://instagram.com' },
-    { name: 'LinkedIn', icon: <Linkedin size={20} />, href: 'https://linkedin.com' }
+    { Icon: Facebook, href: "#" },
+    { Icon: Twitter, href: "#" },
+    { Icon: Instagram, href: "#" },
+    { Icon: Linkedin, href: "#" },
+    { Icon: Youtube, href: "#" }
   ];
-  
-  // Contact information
-  const contactInfo = [
-    { icon: <MapPin size={20} />, text: '123 Business Street, New Delhi, India' },
-    { icon: <Phone size={20} />, text: '+91 98765 43210' },
-    { icon: <Mail size={20} />, text: 'contact@businessoptions.in' }
+
+  const legalLinks = [
+    { label: "Privacy Policy", href: APP_ROUTES.STATIC.PRIVACY },
+    { label: "Terms of Service", href: APP_ROUTES.STATIC.TERMS },
+    { label: "Cookie Policy", href: "#" },
+    { label: "Sitemap", href: "#" }
   ];
 
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div>
-            <Link to={APP_ROUTES.HOME} className="text-xl font-bold text-white mb-4 inline-block">
-              BusinessOptions
-            </Link>
-            <p className="text-gray-400 mb-4">
-              Connect with the right business opportunities across India. Buy, sell, or invest in businesses, franchises, startups, and digital assets.
+    <footer className="bg-gray-50 text-gray-800 pt-12 pb-6">
+      <div className="max-w-[2560px] mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+          {/* Brand Column */}
+          <div className="lg:col-span-1">
+            <div className="mb-4">
+              <Link to={APP_ROUTES.HOME}>
+                <img src="/src/logo.png" alt="Business Options Logo" className="h-8" />
+              </Link>
+            </div>
+            <p className="text-gray-600 text-sm mb-4">
+              Connecting entrepreneurs, investors, and business opportunities across India.
             </p>
-            
-            {/* Social Media Links */}
-            <div className="flex space-x-4 mt-4">
-              {socialLinks.map((social, index) => (
+            <div className="flex space-x-3">
+              {socialLinks.map(({ Icon, href }, index) => (
                 <a 
                   key={index} 
-                  href={social.href} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
-                  aria-label={social.name}
+                  href={href} 
+                  className="text-gray-500 hover:text-indigo-600 transition-colors"
                 >
-                  {social.icon}
+                  <Icon className="w-5 h-5" />
                 </a>
               ))}
             </div>
           </div>
           
-          {/* Footer Link Groups */}
-          {footerLinks.map((group, groupIndex) => (
-            <div key={groupIndex}>
-              <h3 className="text-lg font-semibold mb-4">{group.title}</h3>
+          {/* Links Columns */}
+          {Object.entries(footerLinks).map(([category, links]) => (
+            <div key={category} className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                {category}
+              </h3>
               <ul className="space-y-2">
-                {group.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
+                {links.map((link, index) => (
+                  <li key={index}>
                     <Link 
                       to={link.href} 
-                      className="text-gray-400 hover:text-white transition-colors"
+                      className="text-gray-600 text-sm hover:text-indigo-600 transition-colors"
                     >
-                      {link.name}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
@@ -107,21 +101,25 @@ function SiteFooter() {
           ))}
         </div>
         
-        {/* Contact Information */}
-        <div className="mt-12 pt-8 border-t border-gray-800">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {contactInfo.map((info, index) => (
-              <div key={index} className="flex items-center text-gray-400">
-                <span className="mr-2">{info.icon}</span>
-                <span>{info.text}</span>
-              </div>
-            ))}
+        <div className="border-t border-gray-200 pt-6 mt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0">
+              <p className="text-gray-500 text-xs">
+                © {currentYear} Business Options. All Rights Reserved.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              {legalLinks.map((item, index) => (
+                <Link 
+                  key={index} 
+                  to={item.href} 
+                  className="text-gray-500 hover:text-indigo-600 text-xs transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-        
-        {/* Copyright */}
-        <div className="mt-8 pt-8 border-t border-gray-800 text-gray-400 text-center">
-          <p>© {currentYear} BusinessOptions. All rights reserved.</p>
         </div>
       </div>
     </footer>

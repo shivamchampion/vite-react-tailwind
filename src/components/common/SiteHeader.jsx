@@ -1,33 +1,113 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@heroui/react";
-import { 
-  ChevronDown, 
-  Menu, 
-  X, 
-  Building, 
-  TrendingUp, 
-  Lightbulb, 
-  Users, 
-  Globe, 
-  Info, 
-  BookOpen, 
-  User, 
-  Briefcase, 
-  BarChart3, 
-  Award, 
-  LineChart, 
-  Search, 
-  HelpCircle, 
-  MessageSquare, 
-  Mail, 
-  ChevronRight, 
+import {
+  ChevronDown,
+  Menu,
+  X,
+  Building,
+  TrendingUp,
+  Lightbulb,
+  Users,
+  Globe,
+  Info,
+  BookOpen,
+  User,
+  Briefcase,
+  BarChart3,
+  Award,
+  LineChart,
+  Search,
+  HelpCircle,
+  MessageSquare,
+  Mail,
+  ChevronRight,
   Home,
   LogOut,
   Settings
 } from "lucide-react";
 import { useAuth } from '../../contexts/AuthContext';
 import { APP_ROUTES } from '../../utils/constants';
+
+
+
+/**
+ * Simple Logout Confirmation Dialog Component
+ * 
+ * A simplified dialog specifically for logout confirmation
+ */
+const LogoutConfirmationDialog = ({ isOpen, onClose, onConfirm, isLoading }) => {
+  if (!isOpen) return null;
+
+  // Prevent clicks on the modal from closing it
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-md mx-4"
+        onClick={stopPropagation}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-b border-yellow-100 py-3 px-4 flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900">
+            Log Out
+          </h3>
+          <button
+            className="text-gray-400 hover:text-gray-500 focus:outline-none"
+            onClick={onClose}
+            type="button"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 mr-4">
+              <LogOut size={24} />
+            </div>
+            <div>
+              <p className="text-gray-500">
+                Are you sure you want to log out of your account?
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button
+            type="button"
+            className={`w-full sm:w-auto sm:ml-3 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-white font-medium sm:text-sm hover:bg-yellow-700 focus:outline-none ${isLoading ? 'opacity-70 cursor-not-allowed bg-yellow-400' : ''
+              }`}
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Logging out...' : 'Log Out'}
+          </button>
+          <button
+            type="button"
+            className="mt-3 sm:mt-0 w-full sm:w-auto sm:ml-3 inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-gray-700 font-medium sm:text-sm hover:bg-gray-50 focus:outline-none"
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Navigation Item component for consistent styling across different navigation areas
@@ -36,8 +116,8 @@ const NavItem = ({ to, href, icon, children, className = "", onClick }) => {
   // Use Link for internal navigation, anchor for external links
   if (to) {
     return (
-      <Link 
-        to={to} 
+      <Link
+        to={to}
         className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${className}`}
         onClick={onClick}
       >
@@ -46,10 +126,10 @@ const NavItem = ({ to, href, icon, children, className = "", onClick }) => {
       </Link>
     );
   }
-  
+
   return (
-    <a 
-      href={href} 
+    <a
+      href={href}
       className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${className}`}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
@@ -64,8 +144,8 @@ const NavItem = ({ to, href, icon, children, className = "", onClick }) => {
 const DropdownItem = ({ to, href, icon, children, onClick }) => {
   if (to) {
     return (
-      <Link 
-        to={to} 
+      <Link
+        to={to}
         className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
         onClick={onClick}
       >
@@ -78,8 +158,8 @@ const DropdownItem = ({ to, href, icon, children, onClick }) => {
   }
 
   return (
-    <a 
-      href={href} 
+    <a
+      href={href}
       className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
     >
       <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
@@ -168,15 +248,15 @@ const CompanyDropdown = ({ isOpen, companyItems, onItemClick }) => (
 /**
  * Desktop navigation component
  */
-const DesktopNavigation = ({ 
-  mainNavItems, 
-  resourcesOpen, 
-  setResourcesOpen, 
-  companyOpen, 
-  setCompanyOpen, 
-  resourcesRef, 
-  companyRef, 
-  resourcesItems, 
+const DesktopNavigation = ({
+  mainNavItems,
+  resourcesOpen,
+  setResourcesOpen,
+  companyOpen,
+  setCompanyOpen,
+  resourcesRef,
+  companyRef,
+  resourcesItems,
   companyItems,
   closeDropdowns
 }) => (
@@ -186,10 +266,10 @@ const DesktopNavigation = ({
         {item.name}
       </NavItem>
     ))}
-    
+
     {/* Resources Dropdown */}
     <div className="relative" ref={resourcesRef}>
-      <button 
+      <button
         className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
         onClick={() => {
           setResourcesOpen(!resourcesOpen);
@@ -200,19 +280,19 @@ const DesktopNavigation = ({
         <span className="ml-1.5">Resources</span>
         <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
       </button>
-      
+
       {resourcesOpen && (
-        <ResourcesDropdown 
-          isOpen={resourcesOpen} 
-          resourcesItems={resourcesItems} 
+        <ResourcesDropdown
+          isOpen={resourcesOpen}
+          resourcesItems={resourcesItems}
           onItemClick={closeDropdowns}
         />
       )}
     </div>
-    
+
     {/* Company Dropdown */}
     <div className="relative" ref={companyRef}>
-      <button 
+      <button
         className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
         onClick={() => {
           setCompanyOpen(!companyOpen);
@@ -223,11 +303,11 @@ const DesktopNavigation = ({
         <span className="ml-1.5">Company</span>
         <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} />
       </button>
-      
+
       {companyOpen && (
-        <CompanyDropdown 
-          isOpen={companyOpen} 
-          companyItems={companyItems} 
+        <CompanyDropdown
+          isOpen={companyOpen}
+          companyItems={companyItems}
           onItemClick={closeDropdowns}
         />
       )}
@@ -243,15 +323,15 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
     <div className="px-4 pt-2 pb-6 space-y-1">
       {/* Become an Advisor button at top for small screens only */}
       <div className="md:hidden pt-2 pb-2">
-        <Button 
-          className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md items-center text-sm flex justify-center" 
+        <Button
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md items-center text-sm flex justify-center"
           variant="flat"
         >
           <Briefcase className="w-4 h-4 mr-1.5" />
           <span>Become an Advisor</span>
         </Button>
       </div>
-      
+
       {/* Main Navigation Items */}
       <div className="py-2">
         <div className="flex items-center px-3 py-2 text-indigo-700 font-medium">
@@ -259,10 +339,10 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
         </div>
         <div className="ml-4 pl-4 border-l-2 border-indigo-100">
           {mainNavItems.map((item) => (
-            <MobileMenuItem 
-              key={item.name} 
-              to={item.to} 
-              href={item.href} 
+            <MobileMenuItem
+              key={item.name}
+              to={item.to}
+              href={item.href}
               icon={item.icon}
               onClick={onItemClick}
             >
@@ -271,7 +351,7 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
           ))}
         </div>
       </div>
-      
+
       {/* Resources Section */}
       <div className="py-2">
         <div className="flex items-center px-3 py-2 text-indigo-700 font-medium">
@@ -280,10 +360,10 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
         </div>
         <div className="ml-4 pl-4 border-l-2 border-indigo-100">
           {resourcesItems.map((item) => (
-            <MobileMenuItem 
-              key={item.name} 
-              to={item.to} 
-              href={item.href} 
+            <MobileMenuItem
+              key={item.name}
+              to={item.to}
+              href={item.href}
               icon={item.icon}
               onClick={onItemClick}
             >
@@ -292,7 +372,7 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
           ))}
         </div>
       </div>
-      
+
       {/* Company Section */}
       <div className="py-2">
         <div className="flex items-center px-3 py-2 text-indigo-700 font-medium">
@@ -301,10 +381,10 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
         </div>
         <div className="ml-4 pl-4 border-l-2 border-indigo-100">
           {companyItems.map((item) => (
-            <MobileMenuItem 
-              key={item.name} 
-              to={item.to} 
-              href={item.href} 
+            <MobileMenuItem
+              key={item.name}
+              to={item.to}
+              href={item.href}
               icon={item.icon}
               onClick={onItemClick}
             >
@@ -323,7 +403,7 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
 /**
  * User profile dropdown component
  */
-const UserDropdown = ({ isOpen, userProfile, handleLogout }) => (
+const UserDropdown = ({ isOpen, userProfile, handleLogoutClick }) => (
   <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
     <div className="py-2 px-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
       <h3 className="text-sm font-medium text-indigo-800">Your Account</h3>
@@ -338,8 +418,8 @@ const UserDropdown = ({ isOpen, userProfile, handleLogout }) => (
       <DropdownItem to={APP_ROUTES.DASHBOARD.SETTINGS} icon={<Settings size={16} />}>
         Settings
       </DropdownItem>
-      <button 
-        onClick={handleLogout}
+      <button
+        onClick={handleLogoutClick}
         className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-indigo-50 hover:text-red-700 transition-all duration-200 border-l-2 border-transparent hover:border-red-500"
       >
         <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-red-600 bg-red-100 rounded-md mr-3">
@@ -351,29 +431,29 @@ const UserDropdown = ({ isOpen, userProfile, handleLogout }) => (
   </div>
 );
 
-const AuthButtons = ({ 
-  showMobileMenu, 
-  setShowMobileMenu, 
-  isAuthenticated, 
-  userProfile, 
+const AuthButtons = ({
+  showMobileMenu,
+  setShowMobileMenu,
+  isAuthenticated,
+  userProfile,
   openAuthModal,
-  handleLogout,
+  handleLogoutClick,
   userDropdownOpen,
   setUserDropdownOpen,
   userDropdownRef
 }) => (
   <div className="flex items-center gap-1 sm:gap-3 ml-auto">
     {/* Become an Advisor - visible on medium and large screens */}
-    <Button 
+    <Button
       className="hidden md:flex bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-sm hover:shadow-md items-center text-xs lg:text-sm whitespace-nowrap"
       variant="flat"
     >
       <Briefcase className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1 lg:mr-1.5" />
       <span>Become an Advisor</span>
     </Button>
-    
+
     <div className="hidden md:block h-8 w-[1px] bg-gray-200 mx-1"></div>
-    
+
     {isAuthenticated ? (
       <div className="relative" ref={userDropdownRef}>
         <button
@@ -386,19 +466,19 @@ const AuthButtons = ({
           <span className="hidden md:block">{userProfile?.displayName || 'User'}</span>
           <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {userDropdownOpen && (
-          <UserDropdown 
-            isOpen={userDropdownOpen} 
-            userProfile={userProfile} 
-            handleLogout={handleLogout} 
+          <UserDropdown
+            isOpen={userDropdownOpen}
+            userProfile={userProfile}
+            handleLogoutClick={handleLogoutClick}
           />
         )}
       </div>
     ) : (
       <>
         {/* Login Button */}
-        <Button 
+        <Button
           className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 items-center text-xs sm:text-sm flex whitespace-nowrap px-2 sm:px-3"
           variant="flat"
           onClick={() => openAuthModal('login')}
@@ -406,9 +486,9 @@ const AuthButtons = ({
           <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
           <span>Login</span>
         </Button>
-        
+
         {/* Register Button */}
-        <Button 
+        <Button
           className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm whitespace-nowrap px-2 sm:px-3"
           onClick={() => openAuthModal('register')}
         >
@@ -417,7 +497,7 @@ const AuthButtons = ({
         </Button>
       </>
     )}
-    
+
     {/* Mobile/Tablet Menu Button - visible on 2xl screens and below */}
     <button
       type="button"
@@ -437,14 +517,14 @@ const AuthButtons = ({
 /**
  * Secondary navigation for xl screens
  */
-const SecondaryNavigation = ({ 
-  mainNavItems, 
-  resourcesRef, 
-  companyRef, 
-  resourcesOpen, 
-  setResourcesOpen, 
-  companyOpen, 
-  setCompanyOpen 
+const SecondaryNavigation = ({
+  mainNavItems,
+  resourcesRef,
+  companyRef,
+  resourcesOpen,
+  setResourcesOpen,
+  companyOpen,
+  setCompanyOpen
 }) => (
   <div className="hidden xl:block 2xl:hidden border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-white to-indigo-50">
     <div className="max-w-[2560px] mx-auto px-8 xl:px-12">
@@ -455,10 +535,10 @@ const SecondaryNavigation = ({
               {item.name}
             </NavItem>
           ))}
-          
+
           {/* Resources Dropdown */}
           <div className="relative" ref={resourcesRef}>
-            <button 
+            <button
               className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
               onClick={() => {
                 setResourcesOpen(!resourcesOpen);
@@ -470,10 +550,10 @@ const SecondaryNavigation = ({
               <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
-          
+
           {/* Company Dropdown */}
           <div className="relative" ref={companyRef}>
-            <button 
+            <button
               className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
               onClick={() => {
                 setCompanyOpen(!companyOpen);
@@ -497,18 +577,22 @@ const SecondaryNavigation = ({
 const SiteHeader = ({ openAuthModal }) => {
   const navigate = useNavigate();
   const { currentUser, userProfile, signout } = useAuth();
-  
+
   // State for mobile menu and dropdowns
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  
+
+  // State for logout confirmation dialog
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
   // Refs for dropdown menus (for detecting clicks outside)
   const resourcesRef = useRef(null);
   const companyRef = useRef(null);
   const userDropdownRef = useRef(null);
-  
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -522,20 +606,30 @@ const SiteHeader = ({ openAuthModal }) => {
         setUserDropdownOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  // Handle logout
+  // Show logout confirmation dialog
+  const handleLogoutClick = () => {
+    setUserDropdownOpen(false); // Close the dropdown first
+    setShowLogoutConfirm(true); // Then show the confirmation dialog
+  };
+
+  // Handle actual logout after confirmation
   const handleLogout = async () => {
     try {
+      setLogoutLoading(true);
       await signout();
       navigate(APP_ROUTES.HOME);
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
+      setLogoutLoading(false);
+      setShowLogoutConfirm(false);
     }
   };
 
@@ -560,7 +654,7 @@ const SiteHeader = ({ openAuthModal }) => {
     { name: "Success Stories", to: "/success-stories", icon: <Award size={16} /> },
     { name: "Market Insights", to: "/market-insights", icon: <LineChart size={16} /> }
   ];
-  
+
   // Company dropdown items - original structure
   const companyItems = [
     { name: "About Us", to: APP_ROUTES.STATIC.ABOUT, icon: <Info size={16} /> },
@@ -568,7 +662,7 @@ const SiteHeader = ({ openAuthModal }) => {
     { name: "Testimonials", to: "/testimonials", icon: <MessageSquare size={16} /> },
     { name: "Contact Us", to: APP_ROUTES.STATIC.CONTACT, icon: <Mail size={16} /> }
   ];
-  
+
   // Main navigation items - using your existing categories plus Home
   const mainNavItems = [
     { name: "Home", to: APP_ROUTES.HOME, icon: <Home className="w-4 h-4" /> },
@@ -578,7 +672,7 @@ const SiteHeader = ({ openAuthModal }) => {
     { name: "Investors", to: APP_ROUTES.MARKETPLACE.INVESTOR, icon: <Users className="w-4 h-4" /> },
     { name: "Digital Assets", to: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET, icon: <Globe className="w-4 h-4" /> }
   ];
-  
+
   return (
     <header className="bg-white sticky top-0 z-50 shadow-sm">
       {/* Main header row */}
@@ -591,10 +685,10 @@ const SiteHeader = ({ openAuthModal }) => {
                 <img src="/src/logo.png" alt="Business Options Logo" className="h-8 sm:h-10 md:h-12" />
               </Link>
             </div>
-            
+
             {/* Desktop Navigation - visible on 2xl screens */}
             <div className="hidden 2xl:flex items-center space-x-1 mx-4 flex-grow justify-center">
-              <DesktopNavigation 
+              <DesktopNavigation
                 mainNavItems={mainNavItems}
                 resourcesOpen={resourcesOpen}
                 setResourcesOpen={setResourcesOpen}
@@ -607,15 +701,15 @@ const SiteHeader = ({ openAuthModal }) => {
                 closeDropdowns={closeDropdowns}
               />
             </div>
-            
+
             {/* Auth Buttons */}
-            <AuthButtons 
-              showMobileMenu={mobileMenuOpen} 
+            <AuthButtons
+              showMobileMenu={mobileMenuOpen}
               setShowMobileMenu={setMobileMenuOpen}
               isAuthenticated={!!currentUser}
               userProfile={userProfile}
               openAuthModal={openAuthModal}
-              handleLogout={handleLogout}
+              handleLogoutClick={handleLogoutClick}
               userDropdownOpen={userDropdownOpen}
               setUserDropdownOpen={setUserDropdownOpen}
               userDropdownRef={userDropdownRef}
@@ -623,9 +717,9 @@ const SiteHeader = ({ openAuthModal }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Secondary Navigation Row - Only visible on xl screens */}
-      <SecondaryNavigation 
+      <SecondaryNavigation
         mainNavItems={mainNavItems}
         resourcesRef={resourcesRef}
         companyRef={companyRef}
@@ -634,15 +728,26 @@ const SiteHeader = ({ openAuthModal }) => {
         companyOpen={companyOpen}
         setCompanyOpen={setCompanyOpen}
       />
-      
+
       {/* Mobile/Tablet Menu */}
-      <MobileNavMenu 
+      <MobileNavMenu
         isOpen={mobileMenuOpen}
         mainNavItems={mainNavItems}
         resourcesItems={resourcesItems}
         companyItems={companyItems}
         onItemClick={closeMobileMenu}
       />
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        
+        <LogoutConfirmationDialog 
+          isOpen={showLogoutConfirm} 
+          onClose={() => setShowLogoutConfirm(false)} 
+          onConfirm={handleLogout} 
+          isLoading={logoutLoading} 
+        />
+      )}
     </header>
   );
 };
