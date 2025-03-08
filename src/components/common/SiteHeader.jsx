@@ -582,9 +582,9 @@ const SecondaryNavigation = ({
   setResourcesOpen,
   companyOpen,
   setCompanyOpen,
-  resourcesItems,
-  companyItems,
-  closeDropdowns,
+  resourcesItems, // Add this prop
+  companyItems, // Add this prop
+  closeDropdowns, // Add this prop
   currentPath
 }) => {
   // Check if resources or company tabs should be active
@@ -612,8 +612,9 @@ const SecondaryNavigation = ({
             {/* Resources Dropdown */}
             <div className="relative" ref={resourcesRef}>
               <button
-                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen || isResourcesActive ? 'text-indigo-700 bg-white shadow-sm' : ''
-                  }`}
+                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
+                  resourcesOpen || isResourcesActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+                }`}
                 onClick={() => {
                   setResourcesOpen(!resourcesOpen);
                   setCompanyOpen(false);
@@ -624,6 +625,7 @@ const SecondaryNavigation = ({
                 <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
               </button>
 
+              {/* Add dropdown content here */}
               {resourcesOpen && (
                 <ResourcesDropdown
                   isOpen={resourcesOpen}
@@ -637,8 +639,9 @@ const SecondaryNavigation = ({
             {/* Company Dropdown */}
             <div className="relative" ref={companyRef}>
               <button
-                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen || isCompanyActive ? 'text-indigo-700 bg-white shadow-sm' : ''
-                  }`}
+                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
+                  companyOpen || isCompanyActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+                }`}
                 onClick={() => {
                   setCompanyOpen(!companyOpen);
                   setResourcesOpen(false);
@@ -649,6 +652,7 @@ const SecondaryNavigation = ({
                 <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} />
               </button>
 
+              {/* Add dropdown content here */}
               {companyOpen && (
                 <CompanyDropdown
                   isOpen={companyOpen}
@@ -687,7 +691,7 @@ const SiteHeader = ({ openAuthModal }) => {
   const resourcesRef = useRef(null);
   const companyRef = useRef(null);
   const userDropdownRef = useRef(null);
-
+  
   // Get the current path for active tab highlighting
   const currentPath = location.pathname;
 
@@ -833,7 +837,6 @@ const SiteHeader = ({ openAuthModal }) => {
         </div>
       </div>
 
-
       {/* Secondary Navigation Row - Only visible on xl screens */}
       <SecondaryNavigation
         mainNavItems={mainNavItems}
@@ -843,11 +846,12 @@ const SiteHeader = ({ openAuthModal }) => {
         setResourcesOpen={setResourcesOpen}
         companyOpen={companyOpen}
         setCompanyOpen={setCompanyOpen}
-        resourcesItems={resourcesItems}
-        companyItems={companyItems}
-        closeDropdowns={closeDropdowns}
+        resourcesItems={resourcesItems} // Add this
+        companyItems={companyItems} // Add this
+        closeDropdowns={closeDropdowns} // Add this
         currentPath={currentPath}
       />
+
       {/* Mobile/Tablet Menu */}
       <MobileNavMenu
         isOpen={mobileMenuOpen}
