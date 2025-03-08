@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import SearchSection from "./SearchSection";
 import MarketplaceCarousels from "./MarketplaceCarousels";
 import WhyChooseUs from "./WhyChooseUs";
@@ -16,17 +16,19 @@ import { APP_ROUTES } from '../../utils/constants';
 function Homepage() {
   const navigate = useNavigate();
   
+  // Get the openAuthModal function from outlet context
+  const { openAuthModal } = useOutletContext() || {};
+  
   // Function to handle authentication modal opening
-  // This function is passed from MainLayout via useOutletContext
   const handleOpenAuthModal = (tab = 'login') => {
-    // Get the openAuthModal function from MainLayout if available
-    const openAuthModal = window.openAuthModal || (() => {
-      console.warn('openAuthModal function not available');
+    if (typeof openAuthModal === 'function') {
+      // If we have the function from context, use it
+      openAuthModal(tab);
+    } else {
+      // Fallback to navigation if the function is not available
+      console.warn('openAuthModal function not available in context');
       navigate(tab === 'login' ? APP_ROUTES.AUTH.LOGIN : APP_ROUTES.AUTH.REGISTER);
-    });
-    
-    // Call the function with the specified tab
-    openAuthModal(tab);
+    }
   };
 
   return (
@@ -52,10 +54,6 @@ function Homepage() {
       <CtaSection 
         onRegisterClick={() => handleOpenAuthModal('register')}
         onLearnMoreClick={() => navigate(APP_ROUTES.STATIC.HOW_IT_WORKS)}
-        onSubscribeClick={(email) => {
-          // Here you would handle newsletter subscription
-          alert(`Thank you for subscribing with ${email}! You'll receive our weekly newsletter.`);
-        }}
       />
     </div>
   );
