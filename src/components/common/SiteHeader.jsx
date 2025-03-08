@@ -28,6 +28,9 @@ const SiteHeader = ({ openAuthModal }) => {
     company: false,
     userMenu: false
   });
+  
+  // State to prevent immediate auto-close of dropdowns
+  const [preventAutoClose, setPreventAutoClose] = useState(false);
 
   // State for mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -79,23 +82,44 @@ const SiteHeader = ({ openAuthModal }) => {
     }
   ];
 
+  // Debug effect to monitor dropdown states
+  useEffect(() => {
+    console.log('Current dropdown states:', dropdownStates);
+  }, [dropdownStates]);
+
   // Toggle a specific dropdown while closing others
   const toggleDropdown = (name) => {
     console.log(`Toggling dropdown: ${name}`, !dropdownStates[name]);
     
+    // Set prevention flag to stop immediate closing
+    setPreventAutoClose(true);
+    
+    // Use a callback to ensure we're working with the most current state
     setDropdownStates(prevState => {
-      // Close all dropdowns first
+      // If the dropdown is already open, close it
+      if (prevState[name]) {
+        return {
+          ...prevState,
+          [name]: false
+        };
+      }
+      
+      // Otherwise, close all dropdowns and open this one
       const allClosed = Object.keys(prevState).reduce((acc, key) => {
         acc[key] = false;
         return acc;
       }, {});
       
-      // Then toggle the specified one
       return {
         ...allClosed,
-        [name]: !prevState[name]
+        [name]: true
       };
     });
+    
+    // Clear the prevention flag after a small delay
+    setTimeout(() => {
+      setPreventAutoClose(false);
+    }, 50);
   };
 
   // Close all dropdowns

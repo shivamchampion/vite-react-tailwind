@@ -25,33 +25,65 @@ export const SecondaryNavigationBar = ({
   const isResourcesActive = isResourcesTabActive(currentPath);
   const isCompanyActive = isCompanyTabActive(currentPath);
 
-  // Handle clicks outside dropdowns
+  // Handle clicks outside dropdowns - with modified technique to prevent issues
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Resources dropdown click outside detection
       if (
+        dropdownStates.resources && 
         resourcesRef.current && 
-        !resourcesRef.current.contains(event.target) && 
-        dropdownStates.resources
+        !resourcesRef.current.contains(event.target)
       ) {
-        toggleDropdown('resources');
+        // Small delay to ensure we don't interfere with the click handler
+        setTimeout(() => toggleDropdown('resources'), 0);
       }
 
       // Company dropdown click outside detection
       if (
+        dropdownStates.company &&
         companyRef.current && 
-        !companyRef.current.contains(event.target) && 
-        dropdownStates.company
+        !companyRef.current.contains(event.target)
       ) {
-        toggleDropdown('company');
+        // Small delay to ensure we don't interfere with the click handler
+        setTimeout(() => toggleDropdown('company'), 0);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // Use capture phase for the event to ensure it runs before other handlers
+    document.addEventListener('mousedown', handleClickOutside, true);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside, true);
     };
   }, [dropdownStates, toggleDropdown]);
+
+  // The key fix - added stop propagation to the button clicks
+  const handleResourcesClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Extra aggressive event stopping
+    if (e.nativeEvent) {
+      e.nativeEvent.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+    }
+    
+    console.log("Secondary resources button clicked!");
+    toggleDropdown('resources');
+  };
+
+  const handleCompanyClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Extra aggressive event stopping
+    if (e.nativeEvent) {
+      e.nativeEvent.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+    }
+    
+    console.log("Secondary company button clicked!");
+    toggleDropdown('company');
+  };
 
   return (
     <div className="hidden xl:block 2xl:hidden border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-white to-indigo-50">
@@ -65,6 +97,7 @@ export const SecondaryNavigationBar = ({
                 to={item.to}
                 href={item.href}
                 iconName={item.iconName}
+                icon={item.icon}
                 className="px-4"
                 active={item.active}
               >
@@ -75,19 +108,22 @@ export const SecondaryNavigationBar = ({
             {/* Resources Dropdown */}
             <div 
               ref={resourcesRef} 
-              className="relative"
-              onClick={(e) => e.stopPropagation()} // Stop event bubbling
+              className="relative z-[9999]"
+              style={{ isolation: 'isolate' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (e.nativeEvent) {
+                  e.nativeEvent.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                }
+              }}
             >
               <button
                 type="button"
                 className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
                   dropdownStates.resources || isResourcesActive ? 'text-indigo-700 bg-white shadow-sm' : ''
                 }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleDropdown('resources');
-                }}
+                onClick={handleResourcesClick}
                 aria-expanded={dropdownStates.resources}
               >
                 <BookOpen className="w-4 h-4 flex-shrink-0" />
@@ -113,19 +149,22 @@ export const SecondaryNavigationBar = ({
             {/* Company Dropdown */}
             <div 
               ref={companyRef} 
-              className="relative"
-              onClick={(e) => e.stopPropagation()} // Stop event bubbling
+              className="relative z-[9999]"
+              style={{ isolation: 'isolate' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (e.nativeEvent) {
+                  e.nativeEvent.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                }
+              }}
             >
               <button
                 type="button"
                 className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
                   dropdownStates.company || isCompanyActive ? 'text-indigo-700 bg-white shadow-sm' : ''
                 }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleDropdown('company');
-                }}
+                onClick={handleCompanyClick}
                 aria-expanded={dropdownStates.company}
               >
                 <Info className="w-4 h-4 flex-shrink-0" />

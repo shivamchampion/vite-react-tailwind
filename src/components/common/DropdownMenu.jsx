@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { isRouteActive } from '../../utils/navigationHelpers';
@@ -18,8 +18,12 @@ export const DropdownMenuItem = ({ to, href, icon, children, onClick, active }) 
   // Handle item click with event stopping
   const handleItemClick = (e) => {
     if (onClick) {
+      e.stopPropagation(); // Stop event bubbling
+      if (e.nativeEvent) {
+        e.nativeEvent.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+      }
       onClick(e);
-      e.stopPropagation(); // Prevent event bubbling
     }
   };
 
@@ -69,13 +73,42 @@ export const DropdownMenu = ({ type, items, onItemClick, currentPath, className 
   // Determine position and styling based on type
   const position = type === 'company' ? 'right-0' : 'left-0';
   
+  // Animation state
+  const [opacity, setOpacity] = useState(0);
+  
+  // Force animation after mount
+  useLayoutEffect(() => {
+    // First render at 0 opacity
+    // Then animate to full opacity
+    requestAnimationFrame(() => {
+      setOpacity(1);
+    });
+  }, []);
+  
+  // Key positioning and display styles
+  const styles = {
+    position: 'absolute',
+    display: 'block !important', // Force display
+    zIndex: 9999, // Very high z-index
+    minWidth: type === 'resources' ? '18rem' : '16rem',
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    top: 'calc(100% + 5px)', // Position below the button
+    opacity: opacity,
+    transform: `translateY(${opacity ? '0' : '-10px'})`,
+    transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+    pointerEvents: 'auto'
+  };
+  
   return (
     <div 
-      className={`absolute ${position} mt-1 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50 ${className}`}
-      style={{ 
-        minWidth: type === 'resources' ? '18rem' : '16rem',
-        display: 'block', // Force display
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+      className={`absolute ${position} mt-1 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[9999] ${className}`}
+      style={styles}
+      onClick={e => {
+        e.stopPropagation();
+        if (e.nativeEvent) {
+          e.nativeEvent.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }
       }}
     >
       {/* Dropdown header */}
@@ -112,7 +145,14 @@ export const DropdownMenu = ({ type, items, onItemClick, currentPath, className 
           <Link 
             to="/all-resources" 
             className="text-xs text-indigo-700 hover:text-indigo-900 font-medium flex items-center"
-            onClick={onItemClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (e.nativeEvent) {
+                e.nativeEvent.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+              }
+              if (onItemClick) onItemClick(e);
+            }}
           >
             View all resources
             <ChevronRight size={14} className="ml-1" />
