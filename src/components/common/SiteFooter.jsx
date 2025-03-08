@@ -11,45 +11,49 @@ function SiteFooter() {
   const currentYear = new Date().getFullYear();
   
   const footerLinks = {
-    "Platform": [
-      { label: "How It Works", href: APP_ROUTES.STATIC.HOW_IT_WORKS },
-      { label: "Browse Businesses", href: APP_ROUTES.MARKETPLACE.BUSINESS },
-      { label: "Market Intelligence", href: "#market-insights" },
-      { label: "Verified Listings", href: "#verified-listings" }
+    "Marketplace": [
+      { label: "Businesses", href: APP_ROUTES.MARKETPLACE.BUSINESS },
+      { label: "Franchises", href: APP_ROUTES.MARKETPLACE.FRANCHISE },
+      { label: "Startups", href: APP_ROUTES.MARKETPLACE.STARTUP },
+      { label: "Investors", href: APP_ROUTES.MARKETPLACE.INVESTOR },
+      { label: "Digital Assets", href: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET }
     ],
     "Resources": [
-      { label: "Business Valuation", href: "#valuation" },
-      { label: "Investment Guides", href: "#guides" },
-      { label: "Market Reports", href: "#reports" },
-      { label: "Expert Advisors", href: "#advisors" }
+      { label: "How It Works", href: APP_ROUTES.STATIC.HOW_IT_WORKS },
+      { label: "Business Valuation", href: "/tools/valuation" },
+      { label: "Market Insights", href: "/market-insights" },
+      { label: "Success Stories", href: "/success-stories" },
+      { label: "Blog", href: "/blog" }
     ],
     "Company": [
       { label: "About Us", href: APP_ROUTES.STATIC.ABOUT },
-      { label: "Our Team", href: "#team" },
-      { label: "Careers", href: "#careers" },
-      { label: "Press", href: "#press" }
+      { label: "Our Team", href: "/team" },
+      { label: "Careers", href: "/careers" },
+      { label: "Partner With Us", href: "/partners" },
+      { label: "Contact Us", href: APP_ROUTES.STATIC.CONTACT }
     ],
     "Support": [
-      { label: "Contact Us", href: APP_ROUTES.STATIC.CONTACT },
-      { label: "Help Center", href: "#help" },
+      { label: "Help Center", href: "/help" },
       { label: "FAQs", href: APP_ROUTES.STATIC.FAQ },
-      { label: "Feedback", href: "#feedback" }
+      { label: "Advisor Network", href: "/advisors" },
+      { label: "Seller Guide", href: "/seller-guide" },
+      { label: "Buyer Guide", href: "/buyer-guide" }
     ]
   };
 
   const socialLinks = [
-    { Icon: Facebook, href: "#" },
-    { Icon: Twitter, href: "#" },
-    { Icon: Instagram, href: "#" },
-    { Icon: Linkedin, href: "#" },
-    { Icon: Youtube, href: "#" }
+    { Icon: Facebook, href: "https://facebook.com/businessoptions", ariaLabel: "Facebook" },
+    { Icon: Twitter, href: "https://twitter.com/businessoptions", ariaLabel: "Twitter" },
+    { Icon: Instagram, href: "https://instagram.com/businessoptions", ariaLabel: "Instagram" },
+    { Icon: Linkedin, href: "https://linkedin.com/company/businessoptions", ariaLabel: "LinkedIn" },
+    { Icon: Youtube, href: "https://youtube.com/c/businessoptions", ariaLabel: "YouTube" }
   ];
 
   const legalLinks = [
     { label: "Privacy Policy", href: APP_ROUTES.STATIC.PRIVACY },
     { label: "Terms of Service", href: APP_ROUTES.STATIC.TERMS },
-    { label: "Cookie Policy", href: "#" },
-    { label: "Sitemap", href: "#" }
+    { label: "Cookie Policy", href: "/cookie-policy" },
+    { label: "Sitemap", href: "/sitemap" }
   ];
 
   return (
@@ -64,13 +68,16 @@ function SiteFooter() {
               </Link>
             </div>
             <p className="text-gray-600 text-sm mb-4">
-              Connecting entrepreneurs, investors, and business opportunities across India.
+              India's premier marketplace for buying, selling, and investing in businesses.
             </p>
             <div className="flex space-x-3">
-              {socialLinks.map(({ Icon, href }, index) => (
+              {socialLinks.map(({ Icon, href, ariaLabel }, index) => (
                 <a 
                   key={index} 
                   href={href} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={ariaLabel}
                   className="text-gray-500 hover:text-indigo-600 transition-colors"
                 >
                   <Icon className="w-5 h-5" />
