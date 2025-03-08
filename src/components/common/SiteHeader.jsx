@@ -29,8 +29,6 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { APP_ROUTES } from '../../utils/constants';
 
-
-
 /**
  * Simple Logout Confirmation Dialog Component
  * 
@@ -398,9 +396,6 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
 );
 
 /**
- * Authentication buttons component
- */
-/**
  * User profile dropdown component
  */
 const UserDropdown = ({ isOpen, userProfile, handleLogoutClick }) => (
@@ -431,6 +426,9 @@ const UserDropdown = ({ isOpen, userProfile, handleLogoutClick }) => (
   </div>
 );
 
+/**
+ * Authentication buttons component
+ */
 const AuthButtons = ({
   showMobileMenu,
   setShowMobileMenu,
@@ -740,7 +738,6 @@ const SiteHeader = ({ openAuthModal }) => {
 
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
-        
         <LogoutConfirmationDialog 
           isOpen={showLogoutConfirm} 
           onClose={() => setShowLogoutConfirm(false)} 

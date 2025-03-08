@@ -1,130 +1,157 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { APP_ROUTES } from '../../utils/constants';
 
 /**
  * SiteFooter Component
- * Main site footer with links and copyright information
+ * The main footer for public-facing pages
  */
 function SiteFooter() {
   const currentYear = new Date().getFullYear();
-  
-  const footerLinks = {
-    "Marketplace": [
-      { label: "Businesses", href: APP_ROUTES.MARKETPLACE.BUSINESS },
-      { label: "Franchises", href: APP_ROUTES.MARKETPLACE.FRANCHISE },
-      { label: "Startups", href: APP_ROUTES.MARKETPLACE.STARTUP },
-      { label: "Investors", href: APP_ROUTES.MARKETPLACE.INVESTOR },
-      { label: "Digital Assets", href: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET }
-    ],
-    "Resources": [
-      { label: "How It Works", href: APP_ROUTES.STATIC.HOW_IT_WORKS },
-      { label: "Business Valuation", href: "/tools/valuation" },
-      { label: "Market Insights", href: "/market-insights" },
-      { label: "Success Stories", href: "/success-stories" },
-      { label: "Blog", href: "/blog" }
-    ],
-    "Company": [
-      { label: "About Us", href: APP_ROUTES.STATIC.ABOUT },
-      { label: "Our Team", href: "/team" },
-      { label: "Careers", href: "/careers" },
-      { label: "Partner With Us", href: "/partners" },
-      { label: "Contact Us", href: APP_ROUTES.STATIC.CONTACT }
-    ],
-    "Support": [
-      { label: "Help Center", href: "/help" },
-      { label: "FAQs", href: APP_ROUTES.STATIC.FAQ },
-      { label: "Advisor Network", href: "/advisors" },
-      { label: "Seller Guide", href: "/seller-guide" },
-      { label: "Buyer Guide", href: "/buyer-guide" }
-    ]
-  };
-
-  const socialLinks = [
-    { Icon: Facebook, href: "https://facebook.com/businessoptions", ariaLabel: "Facebook" },
-    { Icon: Twitter, href: "https://twitter.com/businessoptions", ariaLabel: "Twitter" },
-    { Icon: Instagram, href: "https://instagram.com/businessoptions", ariaLabel: "Instagram" },
-    { Icon: Linkedin, href: "https://linkedin.com/company/businessoptions", ariaLabel: "LinkedIn" },
-    { Icon: Youtube, href: "https://youtube.com/c/businessoptions", ariaLabel: "YouTube" }
-  ];
-
-  const legalLinks = [
-    { label: "Privacy Policy", href: APP_ROUTES.STATIC.PRIVACY },
-    { label: "Terms of Service", href: APP_ROUTES.STATIC.TERMS },
-    { label: "Cookie Policy", href: "/cookie-policy" },
-    { label: "Sitemap", href: "/sitemap" }
-  ];
 
   return (
-    <footer className="bg-gray-50 text-gray-800 pt-12 pb-6">
-      <div className="max-w-[2560px] mx-auto px-6 sm:px-8 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-          {/* Brand Column */}
-          <div className="lg:col-span-1">
-            <div className="mb-4">
-              <Link to={APP_ROUTES.HOME}>
-                <img src="/src/logo.png" alt="Business Options Logo" className="h-8" />
-              </Link>
-            </div>
-            <p className="text-gray-600 text-sm mb-4">
-              India's premier marketplace for buying, selling, and investing in businesses.
+    <footer className="bg-gradient-to-br from-[#0031AC] to-[#0045AC] text-white">
+      <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+          <div className="col-span-2">
+            <Link to={APP_ROUTES.HOME}>
+              <img 
+                src="/src/logo.png" 
+                alt="Business Options Logo" 
+                className="h-10 mb-4 filter brightness-0 invert" 
+              />
+            </Link>
+            <p className="text-blue-100 mb-4 text-sm max-w-md">
+              Empowering entrepreneurs and investors with comprehensive business discovery, 
+              analysis, and networking solutions.
             </p>
-            <div className="flex space-x-3">
-              {socialLinks.map(({ Icon, href, ariaLabel }, index) => (
-                <a 
-                  key={index} 
-                  href={href} 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={ariaLabel}
-                  className="text-gray-500 hover:text-indigo-600 transition-colors"
-                >
-                  <Icon className="w-5 h-5" />
-                </a>
-              ))}
+            
+            <div className="flex space-x-4">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-200 transition-colors">
+                <Facebook size={20} />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-200 transition-colors">
+                <Twitter size={20} />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-200 transition-colors">
+                <Instagram size={20} />
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-200 transition-colors">
+                <Linkedin size={20} />
+              </a>
             </div>
           </div>
           
-          {/* Links Columns */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category} className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
-                {category}
-              </h3>
-              <ul className="space-y-2">
-                {links.map((link, index) => (
-                  <li key={index}>
-                    <Link 
-                      to={link.href} 
-                      className="text-gray-600 text-sm hover:text-indigo-600 transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Explore</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to={APP_ROUTES.MARKETPLACE.BUSINESS} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Businesses
+                </Link>
+              </li>
+              <li>
+                <Link to={APP_ROUTES.MARKETPLACE.FRANCHISE} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Franchises
+                </Link>
+              </li>
+              <li>
+                <Link to={APP_ROUTES.MARKETPLACE.STARTUP} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Startups
+                </Link>
+              </li>
+              <li>
+                <Link to={APP_ROUTES.MARKETPLACE.INVESTOR} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Investors
+                </Link>
+              </li>
+              <li>
+                <Link to={APP_ROUTES.MARKETPLACE.DIGITAL_ASSET} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Digital Assets
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Resources</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/market-insights" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Market Insights
+                </Link>
+              </li>
+              <li>
+                <Link to="/guides" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Guides
+                </Link>
+              </li>
+              <li>
+                <Link to="/ecosystem" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Ecosystem
+                </Link>
+              </li>
+              <li>
+                <Link to="/tools" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Tools
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Company</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to={APP_ROUTES.STATIC.ABOUT} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link to="/careers" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link to="/press" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Press
+                </Link>
+              </li>
+              <li>
+                <Link to={APP_ROUTES.STATIC.CONTACT} className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link to="/partners" className="text-blue-200 hover:text-white text-xs transition-colors">
+                  Partners
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
         
-        <div className="border-t border-gray-200 pt-6 mt-6">
+        <div className="border-t border-blue-700 mt-8 pt-4 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-gray-500 text-xs">
-                © {currentYear} Business Options. All Rights Reserved.
-              </p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4">
-              {legalLinks.map((item, index) => (
-                <Link 
-                  key={index} 
-                  to={item.href} 
-                  className="text-gray-500 hover:text-indigo-600 text-xs transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <p className="text-blue-300 text-xs mb-4 md:mb-0">
+              © {currentYear} Business Options. All Rights Reserved.
+            </p>
+            <div className="flex space-x-6">
+              <Link to={APP_ROUTES.STATIC.TERMS} className="text-blue-300 hover:text-white text-xs transition-colors">
+                Terms of Service
+              </Link>
+              <Link to={APP_ROUTES.STATIC.PRIVACY} className="text-blue-300 hover:text-white text-xs transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to={APP_ROUTES.STATIC.FAQ} className="text-blue-300 hover:text-white text-xs transition-colors">
+                FAQ
+              </Link>
             </div>
           </div>
         </div>
