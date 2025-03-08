@@ -82,18 +82,8 @@ const SiteHeader = ({ openAuthModal }) => {
     }
   ];
 
-  // Debug effect to monitor dropdown states
-  useEffect(() => {
-    console.log('Current dropdown states:', dropdownStates);
-  }, [dropdownStates]);
-
   // Toggle a specific dropdown while closing others
   const toggleDropdown = (name) => {
-    console.log(`Toggling dropdown: ${name}`, !dropdownStates[name]);
-    
-    // Set prevention flag to stop immediate closing
-    setPreventAutoClose(true);
-    
     // Use a callback to ensure we're working with the most current state
     setDropdownStates(prevState => {
       // If the dropdown is already open, close it
@@ -115,11 +105,6 @@ const SiteHeader = ({ openAuthModal }) => {
         [name]: true
       };
     });
-    
-    // Clear the prevention flag after a small delay
-    setTimeout(() => {
-      setPreventAutoClose(false);
-    }, 50);
   };
 
   // Close all dropdowns
@@ -154,7 +139,7 @@ const SiteHeader = ({ openAuthModal }) => {
   return (
     <header className="bg-white sticky top-0 z-40 shadow-sm">
       {/* Main header row */}
-      <div className="border-b border-gray-200 bg-gradient-to-r from-white via-white to-indigo-50">
+      <div className="border-b border-gray-200 bg-gradient-to-r from-white via-white via-55% to-indigo-50">
         <div className="max-w-[2560px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo */}

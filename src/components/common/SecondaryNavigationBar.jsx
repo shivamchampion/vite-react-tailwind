@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { NavItem } from './NavigationItems';
+import { Link } from 'react-router-dom';
 import { DropdownMenu } from './DropdownMenu';
 import { BookOpen, Info, ChevronDown } from 'lucide-react';
 import { isResourcesTabActive, isCompanyTabActive } from '../../utils/navigationHelpers';
@@ -25,7 +25,7 @@ export const SecondaryNavigationBar = ({
   const isResourcesActive = isResourcesTabActive(currentPath);
   const isCompanyActive = isCompanyTabActive(currentPath);
 
-  // Handle clicks outside dropdowns - with modified technique to prevent issues
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Resources dropdown click outside detection
@@ -34,8 +34,7 @@ export const SecondaryNavigationBar = ({
         resourcesRef.current && 
         !resourcesRef.current.contains(event.target)
       ) {
-        // Small delay to ensure we don't interfere with the click handler
-        setTimeout(() => toggleDropdown('resources'), 0);
+        toggleDropdown('resources');
       }
 
       // Company dropdown click outside detection
@@ -44,46 +43,16 @@ export const SecondaryNavigationBar = ({
         companyRef.current && 
         !companyRef.current.contains(event.target)
       ) {
-        // Small delay to ensure we don't interfere with the click handler
-        setTimeout(() => toggleDropdown('company'), 0);
+        toggleDropdown('company');
       }
     };
 
-    // Use capture phase for the event to ensure it runs before other handlers
+    // Use capture phase to ensure this runs before other click handlers
     document.addEventListener('mousedown', handleClickOutside, true);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
   }, [dropdownStates, toggleDropdown]);
-
-  // The key fix - added stop propagation to the button clicks
-  const handleResourcesClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Extra aggressive event stopping
-    if (e.nativeEvent) {
-      e.nativeEvent.stopPropagation();
-      e.nativeEvent.stopImmediatePropagation();
-    }
-    
-    console.log("Secondary resources button clicked!");
-    toggleDropdown('resources');
-  };
-
-  const handleCompanyClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Extra aggressive event stopping
-    if (e.nativeEvent) {
-      e.nativeEvent.stopPropagation();
-      e.nativeEvent.stopImmediatePropagation();
-    }
-    
-    console.log("Secondary company button clicked!");
-    toggleDropdown('company');
-  };
 
   return (
     <div className="hidden xl:block 2xl:hidden border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-white to-indigo-50">
@@ -92,42 +61,36 @@ export const SecondaryNavigationBar = ({
           <nav className="flex items-center space-x-2">
             {/* Main Navigation Links */}
             {navItems.map((item) => (
-              <NavItem
+              <Link
                 key={item.name}
                 to={item.to}
-                href={item.href}
-                iconName={item.iconName}
-                icon={item.icon}
-                className="px-4"
-                active={item.active}
+                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
+                  item.active 
+                    ? 'text-indigo-700 bg-white shadow-sm' 
+                    : 'hover:text-indigo-700'
+                }`}
               >
                 {item.name}
-              </NavItem>
+              </Link>
             ))}
 
             {/* Resources Dropdown */}
             <div 
               ref={resourcesRef} 
-              className="relative z-[9999]"
-              style={{ isolation: 'isolate' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (e.nativeEvent) {
-                  e.nativeEvent.stopPropagation();
-                  e.nativeEvent.stopImmediatePropagation();
-                }
-              }}
+              className="relative z-50"
             >
               <button
                 type="button"
                 className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
-                  dropdownStates.resources || isResourcesActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+                  dropdownStates.resources || isResourcesActive 
+                    ? 'text-indigo-700 bg-white shadow-sm' 
+                    : 'hover:text-indigo-700'
                 }`}
-                onClick={handleResourcesClick}
+                onClick={() => toggleDropdown('resources')}
                 aria-expanded={dropdownStates.resources}
               >
-                <BookOpen className="w-4 h-4 flex-shrink-0" />
-                <span className="ml-1.5">Resources</span>
+                <BookOpen className="w-4 h-4 flex-shrink-0 mr-1.5" />
+                <span>Resources</span>
                 <ChevronDown 
                   className={`ml-1.5 w-4 h-4 transition-transform ${
                     dropdownStates.resources ? 'rotate-180' : ''
@@ -149,26 +112,20 @@ export const SecondaryNavigationBar = ({
             {/* Company Dropdown */}
             <div 
               ref={companyRef} 
-              className="relative z-[9999]"
-              style={{ isolation: 'isolate' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (e.nativeEvent) {
-                  e.nativeEvent.stopPropagation();
-                  e.nativeEvent.stopImmediatePropagation();
-                }
-              }}
+              className="relative z-50"
             >
               <button
                 type="button"
                 className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
-                  dropdownStates.company || isCompanyActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+                  dropdownStates.company || isCompanyActive 
+                    ? 'text-indigo-700 bg-white shadow-sm' 
+                    : 'hover:text-indigo-700'
                 }`}
-                onClick={handleCompanyClick}
+                onClick={() => toggleDropdown('company')}
                 aria-expanded={dropdownStates.company}
               >
-                <Info className="w-4 h-4 flex-shrink-0" />
-                <span className="ml-1.5">Company</span>
+                <Info className="w-4 h-4 flex-shrink-0 mr-1.5" />
+                <span>Company</span>
                 <ChevronDown 
                   className={`ml-1.5 w-4 h-4 transition-transform ${
                     dropdownStates.company ? 'rotate-180' : ''

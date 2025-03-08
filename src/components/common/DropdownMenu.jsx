@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { isRouteActive } from '../../utils/navigationHelpers';
@@ -15,100 +15,108 @@ export const DropdownMenuItem = ({ to, href, icon, children, onClick, active }) 
       : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 border-transparent hover:border-indigo-500'
   }`;
 
-  // Handle item click with event stopping
-  const handleItemClick = (e) => {
+  // Render link or anchor based on prop
+  const renderLink = (linkProps) => {
+    const { children: linkChildren, ...rest } = linkProps;
+    return to ? (
+      <Link 
+        {...rest} 
+        to={to} 
+        className={baseClass}
+      >
+        {icon && (
+          <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
+            {icon}
+          </span>
+        )}
+        <span>{linkChildren}</span>
+      </Link>
+    ) : (
+      <a 
+        {...rest} 
+        href={href} 
+        className={baseClass}
+      >
+        {icon && (
+          <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
+            {icon}
+          </span>
+        )}
+        <span>{linkChildren}</span>
+      </a>
+    );
+  };
+
+  // Handle item click with comprehensive event stopping
+  const handleClick = (e) => {
+    // Prevent event from bubbling up
+    e.stopPropagation();
+    
+    // Call onClick if provided
     if (onClick) {
-      e.stopPropagation(); // Stop event bubbling
-      if (e.nativeEvent) {
-        e.nativeEvent.stopPropagation();
-        e.nativeEvent.stopImmediatePropagation();
-      }
       onClick(e);
     }
   };
 
-  if (to) {
-    return (
-      <Link
-        to={to}
-        className={baseClass}
-        onClick={handleItemClick}
-      >
-        <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
-          {icon}
-        </span>
-        <span>{children}</span>
-      </Link>
-    );
-  }
-
-  return (
-    <a
-      href={href}
-      className={baseClass}
-      onClick={handleItemClick}
-    >
-      <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
-        {icon}
-      </span>
-      <span>{children}</span>
-    </a>
-  );
+  return renderLink({ 
+    children, 
+    onClick: handleClick,
+    'data-dropdown-item': 'true' 
+  });
 };
 
 /**
  * Main Dropdown Menu Component
  * Renders a dropdown menu with the appropriate styling based on type
  */
-export const DropdownMenu = ({ type, items, onItemClick, currentPath, className = '' }) => {
-  // Debug output
-  console.log(`Rendering ${type} dropdown with ${items?.length || 0} items`);
-  
+export const DropdownMenu = ({ 
+  type, 
+  items, 
+  onItemClick, 
+  currentPath, 
+  className = '',
+  onClose 
+}) => {
+  const dropdownRef = useRef(null);
+
+  // Add event listener to handle clicks outside the dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if the click was outside the dropdown
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target) &&
+        // Ensure the click wasn't on the dropdown trigger
+        !event.target.closest('[aria-expanded="true"]')
+      ) {
+        onClose && onClose();
+      }
+    };
+
+    // Add event listener to document
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
   // Safety check
   if (!items || items.length === 0) {
     console.warn(`No items provided for ${type} dropdown`);
     return null;
   }
 
-  // Determine position and styling based on type
-  const position = type === 'company' ? 'right-0' : 'left-0';
-  
-  // Animation state
-  const [opacity, setOpacity] = useState(0);
-  
-  // Force animation after mount
-  useLayoutEffect(() => {
-    // First render at 0 opacity
-    // Then animate to full opacity
-    requestAnimationFrame(() => {
-      setOpacity(1);
-    });
-  }, []);
-  
-  // Key positioning and display styles
-  const styles = {
-    position: 'absolute',
-    display: 'block !important', // Force display
-    zIndex: 9999, // Very high z-index
-    minWidth: type === 'resources' ? '18rem' : '16rem',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    top: 'calc(100% + 5px)', // Position below the button
-    opacity: opacity,
-    transform: `translateY(${opacity ? '0' : '-10px'})`,
-    transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
-    pointerEvents: 'auto'
-  };
-  
   return (
     <div 
-      className={`absolute ${position} mt-1 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[9999] ${className}`}
-      style={styles}
-      onClick={e => {
+      ref={dropdownRef}
+      className={`absolute ${type === 'company' ? 'right-0' : 'left-0'} 
+        mt-1 bg-white rounded-lg shadow-xl border border-gray-100 
+        overflow-hidden z-[9999] min-w-[16rem] ${className}`}
+      onClick={(e) => {
+        // Prevent clicks inside dropdown from closing it
         e.stopPropagation();
-        if (e.nativeEvent) {
-          e.nativeEvent.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }
       }}
     >
       {/* Dropdown header */}
@@ -147,10 +155,6 @@ export const DropdownMenu = ({ type, items, onItemClick, currentPath, className 
             className="text-xs text-indigo-700 hover:text-indigo-900 font-medium flex items-center"
             onClick={(e) => {
               e.stopPropagation();
-              if (e.nativeEvent) {
-                e.nativeEvent.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
-              }
               if (onItemClick) onItemClick(e);
             }}
           >
