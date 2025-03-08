@@ -2,11 +2,7 @@ import React from 'react';
 import { Button } from "@heroui/react";
 import { ArrowRight, ChevronRight } from "lucide-react";
 
-/**
- * HowItWorks Component
- * Displays the step-by-step process of using the platform
- */
-const HowItWorks = () => {
+const HowItWorks = ({ onGetStartedClick }) => {
   const steps = [
     {
       number: "01",
@@ -60,9 +56,10 @@ const HowItWorks = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button 
+          <Button
             className="bg-white text-indigo-700 hover:bg-gray-100 transition-all duration-200 shadow-md px-6 py-3 font-medium"
             endContent={<ChevronRight className="w-4 h-4" />}
+            onClick={onGetStartedClick}
           >
             Get Started Today
           </Button>

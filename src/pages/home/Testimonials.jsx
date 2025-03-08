@@ -2,11 +2,7 @@ import React from 'react';
 import { Card, CardBody, CardFooter, Button, Avatar } from "@heroui/react";
 import { MessageCircle } from "lucide-react";
 
-/**
- * Testimonials Component
- * Displays user testimonials about the platform
- */
-const Testimonials = () => {
+const Testimonials = ({ onSuccessStoriesClick }) => {
   const testimonials = [
     {
       id: 1,
@@ -67,10 +63,11 @@ const Testimonials = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button 
+          <Button
             className="bg-transparent text-indigo-600 hover:bg-indigo-50 font-medium"
             variant="flat"
             endContent={<MessageCircle className="w-4 h-4" />}
+            onClick={onSuccessStoriesClick}
           >
             Read More Success Stories
           </Button>

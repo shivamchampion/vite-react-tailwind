@@ -1,10 +1,6 @@
 import React from 'react';
 import { Card, CardBody } from "@heroui/react";
 
-/**
- * FeatureCard Component
- * Displays a feature with an icon, title, and description
- */
 const FeatureCard = ({ icon, title, description }) => (
   <Card className="border border-gray-200 hover:border-indigo-600 transition-all duration-300 h-full">
     <CardBody className="p-6 flex flex-col items-center text-center">

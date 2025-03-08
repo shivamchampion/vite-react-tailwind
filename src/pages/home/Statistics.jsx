@@ -1,16 +1,28 @@
 import React from 'react';
 import { Building, CheckCircle, Users, DollarSign } from "lucide-react";
 
-/**
- * Statistics Component
- * Displays key platform statistics
- */
 const Statistics = () => {
   const stats = [
-    { label: "Businesses Listed", value: "12,500+", icon: <Building className="w-6 h-6 text-indigo-600" /> },
-    { label: "Successful Deals", value: "3,700+", icon: <CheckCircle className="w-6 h-6 text-indigo-600" /> },
-    { label: "Active Investors", value: "8,200+", icon: <Users className="w-6 h-6 text-indigo-600" /> },
-    { label: "Total Investment", value: "₹2000+ Cr", icon: <DollarSign className="w-6 h-6 text-indigo-600" /> }
+    {
+      label: "Businesses Listed",
+      value: "12,500+",
+      icon: <Building className="w-6 h-6 text-indigo-600" />
+    },
+    {
+      label: "Successful Deals",
+      value: "3,700+",
+      icon: <CheckCircle className="w-6 h-6 text-indigo-600" />
+    },
+    {
+      label: "Active Investors",
+      value: "8,200+",
+      icon: <Users className="w-6 h-6 text-indigo-600" />
+    },
+    {
+      label: "Total Investment",
+      value: "₹2000+ Cr",
+      icon: <DollarSign className="w-6 h-6 text-indigo-600" />
+    }
   ];
 
   return (
