@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Building, Users, ChevronRight, Award, Globe } from 'lucide-react';
-import { APP_ROUTES } from '../utils/constants';
+import { APP_ROUTES } from '../../utils/constants';
 
 function AboutPage() {
   // Team member data

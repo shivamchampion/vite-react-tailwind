@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@heroui/react";
 import {
   ChevronDown,
@@ -28,6 +28,12 @@ import {
 } from "lucide-react";
 import { useAuth } from '../../contexts/AuthContext';
 import { APP_ROUTES } from '../../utils/constants';
+import {
+  isRouteActive,
+  isCompanyTabActive,
+  isResourcesTabActive,
+  getNavigationGroups
+} from '../../utils/navigationHelpers';
 
 /**
  * Simple Logout Confirmation Dialog Component
@@ -110,13 +116,22 @@ const LogoutConfirmationDialog = ({ isOpen, onClose, onConfirm, isLoading }) => 
 /**
  * Navigation Item component for consistent styling across different navigation areas
  */
-const NavItem = ({ to, href, icon, children, className = "", onClick }) => {
+const NavItem = ({ to, href, icon, children, className = "", onClick, active }) => {
+  // Determine if the item is active based on the prop or className
+  const isActive = active || className.includes('text-indigo-700');
+
+  // Base class for both link types
+  const baseClass = `flex items-center font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${isActive
+    ? 'text-indigo-700 bg-white shadow-sm'
+    : 'text-gray-700 hover:text-indigo-700'
+    } ${className}`;
+
   // Use Link for internal navigation, anchor for external links
   if (to) {
     return (
       <Link
         to={to}
-        className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${className}`}
+        className={baseClass}
         onClick={onClick}
       >
         {icon && <span className="flex-shrink-0">{icon}</span>}
@@ -128,7 +143,7 @@ const NavItem = ({ to, href, icon, children, className = "", onClick }) => {
   return (
     <a
       href={href}
-      className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${className}`}
+      className={baseClass}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
       <span className={icon ? "ml-1.5" : ""}>{children}</span>
@@ -139,12 +154,18 @@ const NavItem = ({ to, href, icon, children, className = "", onClick }) => {
 /**
  * Dropdown menu item component
  */
-const DropdownItem = ({ to, href, icon, children, onClick }) => {
+const DropdownItem = ({ to, href, icon, children, onClick, active }) => {
+  // Base class with conditionally applied active state
+  const baseClass = `flex items-center px-4 py-3 text-sm transition-all duration-200 border-l-2 ${active
+    ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500'
+    : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 border-transparent hover:border-indigo-500'
+    }`;
+
   if (to) {
     return (
       <Link
         to={to}
-        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
+        className={baseClass}
         onClick={onClick}
       >
         <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
@@ -158,7 +179,7 @@ const DropdownItem = ({ to, href, icon, children, onClick }) => {
   return (
     <a
       href={href}
-      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 border-l-2 border-transparent hover:border-indigo-500"
+      className={baseClass}
     >
       <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-3">
         {icon}
@@ -166,17 +187,23 @@ const DropdownItem = ({ to, href, icon, children, onClick }) => {
       <span>{children}</span>
     </a>
   );
-};
+}
 
 /**
- * Mobile menu item component
+ * Mobile menu item component with active state
  */
-const MobileMenuItem = ({ to, href, icon, children, onClick }) => {
+const MobileMenuItem = ({ to, href, icon, children, onClick, active }) => {
+  // Calculate base class
+  const baseClass = `flex items-center px-3 py-2.5 rounded-md text-sm ${active
+    ? 'bg-indigo-50 text-indigo-700 font-medium'
+    : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700'
+    }`;
+
   if (to) {
     return (
       <Link
         to={to}
-        className="flex items-center px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+        className={baseClass}
         onClick={onClick}
       >
         <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
@@ -190,7 +217,7 @@ const MobileMenuItem = ({ to, href, icon, children, onClick }) => {
   return (
     <a
       href={href}
-      className="flex items-center px-3 py-2.5 text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-md text-sm"
+      className={baseClass}
     >
       <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-600 bg-indigo-100 rounded-md mr-2">
         {icon}
@@ -203,7 +230,7 @@ const MobileMenuItem = ({ to, href, icon, children, onClick }) => {
 /**
  * Resources dropdown menu component
  */
-const ResourcesDropdown = ({ isOpen, resourcesItems, onItemClick }) => (
+const ResourcesDropdown = ({ isOpen, resourcesItems, onItemClick, currentPath }) => (
   <div className="absolute left-0 mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-100 z-50 py-1 overflow-hidden">
     <div className="py-2 px-3 bg-gradient-to-r from-indigo-50 to-indigo-100 border-b border-indigo-100">
       <h3 className="text-sm font-medium text-indigo-800">Platform Resources</h3>
@@ -211,7 +238,14 @@ const ResourcesDropdown = ({ isOpen, resourcesItems, onItemClick }) => (
     </div>
     <div className="py-1">
       {resourcesItems.map((item) => (
-        <DropdownItem key={item.name} to={item.to} href={item.href} icon={item.icon} onClick={onItemClick}>
+        <DropdownItem
+          key={item.name}
+          to={item.to}
+          href={item.href}
+          icon={item.icon}
+          onClick={onItemClick}
+          active={item.to && isRouteActive(currentPath, item.to)}
+        >
           {item.name}
         </DropdownItem>
       ))}
@@ -223,25 +257,32 @@ const ResourcesDropdown = ({ isOpen, resourcesItems, onItemClick }) => (
       </Link>
     </div>
   </div>
-);
+)
 
 /**
  * Company dropdown menu component
  */
-const CompanyDropdown = ({ isOpen, companyItems, onItemClick }) => (
+const CompanyDropdown = ({ isOpen, companyItems, onItemClick, currentPath }) => (
   <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
     <div className="py-2 px-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
       <h3 className="text-sm font-medium text-indigo-800">Our Company</h3>
     </div>
     <div className="py-1">
       {companyItems.map((item) => (
-        <DropdownItem key={item.name} to={item.to} href={item.href} icon={item.icon} onClick={onItemClick}>
+        <DropdownItem
+          key={item.name}
+          to={item.to}
+          href={item.href}
+          icon={item.icon}
+          onClick={onItemClick}
+          active={item.to && isRouteActive(currentPath, item.to)}
+        >
           {item.name}
         </DropdownItem>
       ))}
     </div>
   </div>
-);
+)
 
 /**
  * Desktop navigation component
@@ -256,67 +297,83 @@ const DesktopNavigation = ({
   companyRef,
   resourcesItems,
   companyItems,
-  closeDropdowns
-}) => (
-  <nav className="flex items-center space-x-1">
-    {mainNavItems.map((item) => (
-      <NavItem key={item.name} to={item.to} href={item.href} icon={item.icon}>
-        {item.name}
-      </NavItem>
-    ))}
+  closeDropdowns,
+  currentPath
+}) => {
+  // Check if resources or company tabs should be active
+  const isResourcesActive = isResourcesTabActive(currentPath);
+  const isCompanyActive = isCompanyTabActive(currentPath);
 
-    {/* Resources Dropdown */}
-    <div className="relative" ref={resourcesRef}>
-      <button
-        className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
-        onClick={() => {
-          setResourcesOpen(!resourcesOpen);
-          setCompanyOpen(false);
-        }}
-      >
-        <BookOpen className="w-4 h-4 flex-shrink-0" />
-        <span className="ml-1.5">Resources</span>
-        <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
-      </button>
+  return (
+    <nav className="flex items-center space-x-1">
+      {mainNavItems.map((item) => (
+        <NavItem
+          key={item.name}
+          to={item.to}
+          href={item.href}
+          icon={item.icon}
+          className={item.active ? 'text-indigo-700 bg-white shadow-sm' : ''}
+        >
+          {item.name}
+        </NavItem>
+      ))}
 
-      {resourcesOpen && (
-        <ResourcesDropdown
-          isOpen={resourcesOpen}
-          resourcesItems={resourcesItems}
-          onItemClick={closeDropdowns}
-        />
-      )}
-    </div>
+      {/* Resources Dropdown */}
+      <div className="relative" ref={resourcesRef}>
+        <button
+          className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen || isResourcesActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+            }`}
+          onClick={() => {
+            setResourcesOpen(!resourcesOpen);
+            setCompanyOpen(false);
+          }}
+        >
+          <BookOpen className="w-4 h-4 flex-shrink-0" />
+          <span className="ml-1.5">Resources</span>
+          <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
+        </button>
 
-    {/* Company Dropdown */}
-    <div className="relative" ref={companyRef}>
-      <button
-        className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
-        onClick={() => {
-          setCompanyOpen(!companyOpen);
-          setResourcesOpen(false);
-        }}
-      >
-        <Info className="w-4 h-4 flex-shrink-0" />
-        <span className="ml-1.5">Company</span>
-        <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} />
-      </button>
+        {resourcesOpen && (
+          <ResourcesDropdown
+            isOpen={resourcesOpen}
+            resourcesItems={resourcesItems}
+            onItemClick={closeDropdowns}
+            currentPath={currentPath}
+          />
+        )}
+      </div>
 
-      {companyOpen && (
-        <CompanyDropdown
-          isOpen={companyOpen}
-          companyItems={companyItems}
-          onItemClick={closeDropdowns}
-        />
-      )}
-    </div>
-  </nav>
-);
+      {/* Company Dropdown */}
+      <div className="relative" ref={companyRef}>
+        <button
+          className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen || isCompanyActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+            }`}
+          onClick={() => {
+            setCompanyOpen(!companyOpen);
+            setResourcesOpen(false);
+          }}
+        >
+          <Info className="w-4 h-4 flex-shrink-0" />
+          <span className="ml-1.5">Company</span>
+          <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} />
+        </button>
 
+        {companyOpen && (
+          <CompanyDropdown
+            isOpen={companyOpen}
+            companyItems={companyItems}
+            onItemClick={closeDropdowns}
+            currentPath={currentPath}
+          />
+        )}
+      </div>
+    </nav>
+  );
+}
 /**
  * Mobile navigation menu component
  */
-const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onItemClick }) => (
+const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onItemClick, currentPath }) => (
   <div className={`xl:hidden bg-white border-t border-gray-200 shadow-lg ${isOpen ? 'block' : 'hidden'}`}>
     <div className="px-4 pt-2 pb-6 space-y-1">
       {/* Become an Advisor button at top for small screens only */}
@@ -343,6 +400,7 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
               href={item.href}
               icon={item.icon}
               onClick={onItemClick}
+              active={item.active}
             >
               {item.name}
             </MobileMenuItem>
@@ -364,6 +422,7 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
               href={item.href}
               icon={item.icon}
               onClick={onItemClick}
+              active={item.to && isRouteActive(currentPath, item.to)}
             >
               {item.name}
             </MobileMenuItem>
@@ -385,6 +444,7 @@ const MobileNavMenu = ({ isOpen, mainNavItems, resourcesItems, companyItems, onI
               href={item.href}
               icon={item.icon}
               onClick={onItemClick}
+              active={item.to && isRouteActive(currentPath, item.to)}
             >
               {item.name}
             </MobileMenuItem>
@@ -511,7 +571,6 @@ const AuthButtons = ({
     </button>
   </div>
 );
-
 /**
  * Secondary navigation for xl screens
  */
@@ -522,58 +581,96 @@ const SecondaryNavigation = ({
   resourcesOpen,
   setResourcesOpen,
   companyOpen,
-  setCompanyOpen
-}) => (
-  <div className="hidden xl:block 2xl:hidden border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-white to-indigo-50">
-    <div className="max-w-[2560px] mx-auto px-8 xl:px-12">
-      <div className="flex items-center justify-center h-12">
-        <nav className="flex items-center space-x-2">
-          {mainNavItems.map((item) => (
-            <NavItem key={item.name} to={item.to} href={item.href} icon={item.icon} className="px-4">
-              {item.name}
-            </NavItem>
-          ))}
+  setCompanyOpen,
+  resourcesItems,
+  companyItems,
+  closeDropdowns,
+  currentPath
+}) => {
+  // Check if resources or company tabs should be active
+  const isResourcesActive = isResourcesTabActive(currentPath);
+  const isCompanyActive = isCompanyTabActive(currentPath);
 
-          {/* Resources Dropdown */}
-          <div className="relative" ref={resourcesRef}>
-            <button
-              className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
-              onClick={() => {
-                setResourcesOpen(!resourcesOpen);
-                setCompanyOpen(false);
-              }}
-            >
-              <BookOpen className="w-4 h-4 flex-shrink-0" />
-              <span className="ml-1.5">Resources</span>
-              <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
+  return (
+    <div className="hidden xl:block 2xl:hidden border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-white to-indigo-50">
+      <div className="max-w-[2560px] mx-auto px-8 xl:px-12">
+        <div className="flex items-center justify-center h-12">
+          <nav className="flex items-center space-x-2">
+            {mainNavItems.map((item) => (
+              <NavItem
+                key={item.name}
+                to={item.to}
+                href={item.href}
+                icon={item.icon}
+                className="px-4"
+                active={item.active}
+              >
+                {item.name}
+              </NavItem>
+            ))}
 
-          {/* Company Dropdown */}
-          <div className="relative" ref={companyRef}>
-            <button
-              className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen ? 'text-indigo-700 bg-white shadow-sm' : ''}`}
-              onClick={() => {
-                setCompanyOpen(!companyOpen);
-                setResourcesOpen(false);
-              }}
-            >
-              <Info className="w-4 h-4 flex-shrink-0" />
-              <span className="ml-1.5">Company</span>
-              <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
-        </nav>
+            {/* Resources Dropdown */}
+            <div className="relative" ref={resourcesRef}>
+              <button
+                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${resourcesOpen || isResourcesActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+                  }`}
+                onClick={() => {
+                  setResourcesOpen(!resourcesOpen);
+                  setCompanyOpen(false);
+                }}
+              >
+                <BookOpen className="w-4 h-4 flex-shrink-0" />
+                <span className="ml-1.5">Resources</span>
+                <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${resourcesOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {resourcesOpen && (
+                <ResourcesDropdown
+                  isOpen={resourcesOpen}
+                  resourcesItems={resourcesItems}
+                  onItemClick={closeDropdowns}
+                  currentPath={currentPath}
+                />
+              )}
+            </div>
+
+            {/* Company Dropdown */}
+            <div className="relative" ref={companyRef}>
+              <button
+                className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-4 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${companyOpen || isCompanyActive ? 'text-indigo-700 bg-white shadow-sm' : ''
+                  }`}
+                onClick={() => {
+                  setCompanyOpen(!companyOpen);
+                  setResourcesOpen(false);
+                }}
+              >
+                <Info className="w-4 h-4 flex-shrink-0" />
+                <span className="ml-1.5">Company</span>
+                <ChevronDown className={`ml-1.5 w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {companyOpen && (
+                <CompanyDropdown
+                  isOpen={companyOpen}
+                  companyItems={companyItems}
+                  onItemClick={closeDropdowns}
+                  currentPath={currentPath}
+                />
+              )}
+            </div>
+          </nav>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+}
 
 /**
  * Main site header component with responsive navigation
  */
 const SiteHeader = ({ openAuthModal }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, userProfile, signout } = useAuth();
 
   // State for mobile menu and dropdowns
@@ -590,6 +687,9 @@ const SiteHeader = ({ openAuthModal }) => {
   const resourcesRef = useRef(null);
   const companyRef = useRef(null);
   const userDropdownRef = useRef(null);
+
+  // Get the current path for active tab highlighting
+  const currentPath = location.pathname;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -643,34 +743,50 @@ const SiteHeader = ({ openAuthModal }) => {
     setMobileMenuOpen(false);
   };
 
-  // Resources dropdown items - platform-focused content
-  const resourcesItems = [
-    { name: "How to List Your Business", to: "/guides/list-business", icon: <Briefcase size={16} /> },
-    { name: "How to Find Investments", to: "/guides/find-investments", icon: <Search size={16} /> },
-    { name: "How to Value Your Business", to: "/tools/valuation", icon: <BarChart3 size={16} /> },
-    { name: "Platform Guide", to: "/platform-guide", icon: <HelpCircle size={16} /> },
-    { name: "Success Stories", to: "/success-stories", icon: <Award size={16} /> },
-    { name: "Market Insights", to: "/market-insights", icon: <LineChart size={16} /> }
-  ];
 
-  // Company dropdown items - original structure
-  const companyItems = [
-    { name: "About Us", to: APP_ROUTES.STATIC.ABOUT, icon: <Info size={16} /> },
-    { name: "Our Team", to: "/team", icon: <Users size={16} /> },
-    { name: "Testimonials", to: "/testimonials", icon: <MessageSquare size={16} /> },
-    { name: "Contact Us", to: APP_ROUTES.STATIC.CONTACT, icon: <Mail size={16} /> }
-  ];
+
+  // Get navigation groups from helper
+  const { resourcesItems, companyItems } = getNavigationGroups();
 
   // Main navigation items - using your existing categories plus Home
   const mainNavItems = [
-    { name: "Home", to: APP_ROUTES.HOME, icon: <Home className="w-4 h-4" /> },
-    { name: "Businesses", to: APP_ROUTES.MARKETPLACE.BUSINESS, icon: <Building className="w-4 h-4" /> },
-    { name: "Franchises", to: APP_ROUTES.MARKETPLACE.FRANCHISE, icon: <TrendingUp className="w-4 h-4" /> },
-    { name: "Startups", to: APP_ROUTES.MARKETPLACE.STARTUP, icon: <Lightbulb className="w-4 h-4" /> },
-    { name: "Investors", to: APP_ROUTES.MARKETPLACE.INVESTOR, icon: <Users className="w-4 h-4" /> },
-    { name: "Digital Assets", to: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET, icon: <Globe className="w-4 h-4" /> }
+    {
+      name: "Home",
+      to: APP_ROUTES.HOME,
+      icon: <Home className="w-4 h-4" />,
+      active: isRouteActive(currentPath, APP_ROUTES.HOME)
+    },
+    {
+      name: "Businesses",
+      to: APP_ROUTES.MARKETPLACE.BUSINESS,
+      icon: <Building className="w-4 h-4" />,
+      active: isRouteActive(currentPath, APP_ROUTES.MARKETPLACE.BUSINESS)
+    },
+    {
+      name: "Franchises",
+      to: APP_ROUTES.MARKETPLACE.FRANCHISE,
+      icon: <TrendingUp className="w-4 h-4" />,
+      active: isRouteActive(currentPath, APP_ROUTES.MARKETPLACE.FRANCHISE)
+    },
+    {
+      name: "Startups",
+      to: APP_ROUTES.MARKETPLACE.STARTUP,
+      icon: <Lightbulb className="w-4 h-4" />,
+      active: isRouteActive(currentPath, APP_ROUTES.MARKETPLACE.STARTUP)
+    },
+    {
+      name: "Investors",
+      to: APP_ROUTES.MARKETPLACE.INVESTOR,
+      icon: <Users className="w-4 h-4" />,
+      active: isRouteActive(currentPath, APP_ROUTES.MARKETPLACE.INVESTOR)
+    },
+    {
+      name: "Digital Assets",
+      to: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET,
+      icon: <Globe className="w-4 h-4" />,
+      active: isRouteActive(currentPath, APP_ROUTES.MARKETPLACE.DIGITAL_ASSET)
+    }
   ];
-
   return (
     <header className="bg-white sticky top-0 z-50 shadow-sm">
       {/* Main header row */}
@@ -697,6 +813,7 @@ const SiteHeader = ({ openAuthModal }) => {
                 resourcesItems={resourcesItems}
                 companyItems={companyItems}
                 closeDropdowns={closeDropdowns}
+                currentPath={currentPath}
               />
             </div>
 
@@ -716,6 +833,7 @@ const SiteHeader = ({ openAuthModal }) => {
         </div>
       </div>
 
+
       {/* Secondary Navigation Row - Only visible on xl screens */}
       <SecondaryNavigation
         mainNavItems={mainNavItems}
@@ -725,8 +843,11 @@ const SiteHeader = ({ openAuthModal }) => {
         setResourcesOpen={setResourcesOpen}
         companyOpen={companyOpen}
         setCompanyOpen={setCompanyOpen}
+        resourcesItems={resourcesItems}
+        companyItems={companyItems}
+        closeDropdowns={closeDropdowns}
+        currentPath={currentPath}
       />
-
       {/* Mobile/Tablet Menu */}
       <MobileNavMenu
         isOpen={mobileMenuOpen}
@@ -734,15 +855,16 @@ const SiteHeader = ({ openAuthModal }) => {
         resourcesItems={resourcesItems}
         companyItems={companyItems}
         onItemClick={closeMobileMenu}
+        currentPath={currentPath}
       />
 
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
-        <LogoutConfirmationDialog 
-          isOpen={showLogoutConfirm} 
-          onClose={() => setShowLogoutConfirm(false)} 
-          onConfirm={handleLogout} 
-          isLoading={logoutLoading} 
+        <LogoutConfirmationDialog
+          isOpen={showLogoutConfirm}
+          onClose={() => setShowLogoutConfirm(false)}
+          onConfirm={handleLogout}
+          isLoading={logoutLoading}
         />
       )}
     </header>

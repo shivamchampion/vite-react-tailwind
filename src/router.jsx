@@ -20,6 +20,14 @@ const MessagesPage = React.lazy(() => import('./pages/dashboard/Messages'));
 const SettingsPage = React.lazy(() => import('./pages/dashboard/Settings'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 
+
+// Static Pages
+const AboutPage = React.lazy(() => import('./pages/static/About'));
+const ContactPage = React.lazy(() => import('./pages/static/Contact'));
+const FAQPage = React.lazy(() => import('./pages/static/FAQ'));
+const PrivacyPage = React.lazy(() => import('./pages/static/Privacy'));
+const TermsPage = React.lazy(() => import('./pages/static/Terms'));
+const HowItWorksPage = React.lazy(() => import('./pages/static/HowItWorks'));
 // Protected route component
 const ProtectedRoute = ({ element, isAuthenticated, redirectPath = APP_ROUTES.HOME }) => {
   return isAuthenticated ? element : <Navigate to={redirectPath} replace />;
@@ -63,27 +71,27 @@ export const createRouter = (isAuthenticated) => {
         },
         {
           path: APP_ROUTES.STATIC.ABOUT,
-          element: <div>About Page</div>
+          element: <AboutPage />
         },
         {
           path: APP_ROUTES.STATIC.CONTACT,
-          element: <div>Contact Page</div>
+          element: <ContactPage />
         },
         {
           path: APP_ROUTES.STATIC.PRIVACY,
-          element: <div>Privacy Policy</div>
+          element: <PrivacyPage />
         },
         {
           path: APP_ROUTES.STATIC.TERMS,
-          element: <div>Terms of Service</div>
+          element: <TermsPage />
         },
         {
           path: APP_ROUTES.STATIC.FAQ,
-          element: <div>FAQ Page</div>
+          element: <FAQPage />
         },
         {
           path: APP_ROUTES.STATIC.HOW_IT_WORKS,
-          element: <div>How It Works</div>
+          element: <HowItWorksPage />
         }
       ]
     },
