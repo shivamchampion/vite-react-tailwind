@@ -1,84 +1,147 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
+  LayoutDashboard, 
   Building, 
-  TrendingUp, 
   Users, 
-  Calendar, 
+  Heart, 
   MessageSquare, 
-  PlusCircle, 
+  TrendingUp, 
+  Clock, 
+  Search, 
+  BarChart2,
   ArrowRight,
-  Eye
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useEntity } from '../../contexts/EntityContext';
-import { APP_ROUTES } from '../../utils/constants';
+import { useListing } from '../../contexts/ListingContext'; // FIXED: Changed from useEntity to useListing
+import { APP_ROUTES, LISTING_TYPES } from '../../utils/constants';
 
 /**
- * Dashboard Component
- * Main dashboard page for authenticated users
+ * Dashboard Home Page Component
+ * Displays dashboard overview and stats
  */
-function Dashboard() {
-  const { userProfile } = useAuth();
-  const { userEntities = [], loading } = useEntity();
+function DashboardPage() {
+  const { currentUser, userProfile } = useAuth();
+  const { 
+    userListings, // FIXED: Changed from userEntities
+    getListingCountByType, // FIXED: Changed from getEntityCountByType
+    getAnalyticsData,
+    loading 
+  } = useListing(); // FIXED: Changed from useEntity
   
-  // Safely get user display name with fallback
-  const displayName = userProfile?.displayName || 'User';
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   
-  // Safely get connects balance with fallback
-  const connectsBalance = userProfile?.connectsBalance || 0;
+  // Load analytics data
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const data = await getAnalyticsData('30d', 'all');
+        setAnalyticsData(data);
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    
+    fetchAnalytics();
+  }, [getAnalyticsData]);
   
-  // Stats for display (placeholder data)
-  const stats = [
+  // Summary boxes data
+  const summaryBoxes = [
     {
-      name: 'Total Entities',
-      value: Array.isArray(userEntities) ? userEntities.length : 0,
-      icon: <Building size={20} className="text-blue-500" />,
-      change: '+12%',
-      changeType: 'increase'
+      title: 'Total Listings', // FIXED: Changed from Entities
+      value: Array.isArray(userListings) ? userListings.length : 0, // FIXED: Changed from userEntities
+      icon: <Building className="w-6 h-6 text-blue-600" />,
+      color: 'bg-blue-100 text-blue-800',
+      link: APP_ROUTES.DASHBOARD.LISTINGS, // FIXED: Changed from ENTITIES
+      linkText: 'View all'
     },
     {
-      name: 'Active Connects',
-      value: connectsBalance,
-      icon: <Users size={20} className="text-green-500" />,
-      change: '-3',
-      changeType: 'decrease'
+      title: 'Businesses',
+      value: getListingCountByType(LISTING_TYPES.BUSINESS), // FIXED: Changed from getEntityCountByType
+      icon: <Building className="w-6 h-6 text-purple-600" />,
+      color: 'bg-purple-100 text-purple-800',
+      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.BUSINESS}`, // FIXED: Changed from ENTITIES
+      linkText: 'View businesses'
     },
     {
-      name: 'Profile Views',
-      value: '126',
-      icon: <Eye size={20} className="text-purple-500" />,
-      change: '+18%',
-      changeType: 'increase'
+      title: 'Franchises',
+      value: getListingCountByType(LISTING_TYPES.FRANCHISE), // FIXED: Changed from getEntityCountByType
+      icon: <Briefcase className="w-6 h-6 text-green-600" />,
+      color: 'bg-green-100 text-green-800',
+      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.FRANCHISE}`, // FIXED: Changed from ENTITIES
+      linkText: 'View franchises'
     },
     {
-      name: 'Unread Messages',
-      value: '5',
-      icon: <MessageSquare size={20} className="text-yellow-500" />,
-      change: '+2',
-      changeType: 'increase'
+      title: 'Startups',
+      value: getListingCountByType(LISTING_TYPES.STARTUP), // FIXED: Changed from getEntityCountByType
+      icon: <TrendingUp className="w-6 h-6 text-red-600" />,
+      color: 'bg-red-100 text-red-800',
+      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.STARTUP}`, // FIXED: Changed from ENTITIES
+      linkText: 'View startups'
     }
   ];
   
-  // Recent activities (placeholder data)
-  const recentActivities = [
+  // Quick actions
+  const quickActions = [
     {
-      id: 1,
-      activity: 'New message from John regarding your business listing',
-      time: '2 hours ago',
-      type: 'message'
+      title: 'Add New Listing', // FIXED: Changed from Entity
+      description: 'Create a new business, franchise, or startup listing',
+      icon: <Building className="w-8 h-8 text-indigo-600" />,
+      link: APP_ROUTES.DASHBOARD.ADD_LISTING, // FIXED: Changed from ADD_ENTITY
+      color: 'bg-indigo-50 hover:bg-indigo-100'
     },
     {
-      id: 2,
-      activity: 'Your Premium plan for "Coffee Shop" will expire in 3 days',
-      time: '1 day ago',
-      type: 'subscription'
+      title: 'View Analytics',
+      description: 'Check performance metrics for your listings',
+      icon: <BarChart2 className="w-8 h-8 text-blue-600" />,
+      link: APP_ROUTES.DASHBOARD.ANALYTICS,
+      color: 'bg-blue-50 hover:bg-blue-100'
     },
     {
-      id: 3,
-      activity: 'Your business "Coffee Shop" received 5 new views',
-      time: '2 days ago',
-      type: 'view'
+      title: 'Check Messages',
+      description: 'View and respond to inquiries',
+      icon: <MessageSquare className="w-8 h-8 text-green-600" />,
+      link: APP_ROUTES.DASHBOARD.MESSAGES,
+      color: 'bg-green-50 hover:bg-green-100'
+    },
+    {
+      title: 'Update Profile',
+      description: 'Keep your profile information up to date',
+      icon: <Users className="w-8 h-8 text-purple-600" />,
+      link: APP_ROUTES.DASHBOARD.PROFILE,
+      color: 'bg-purple-50 hover:bg-purple-100'
+    }
+  ];
+  
+  // Dashboard sections
+  const dashboardSections = [
+    {
+      title: 'Favorites',
+      icon: <Heart className="w-5 h-5 text-red-500" />,
+      link: APP_ROUTES.DASHBOARD.FAVORITES,
+      description: 'View and manage your saved listings'
+    },
+    {
+      title: 'Recently Viewed',
+      icon: <Clock className="w-5 h-5 text-blue-500" />,
+      link: APP_ROUTES.DASHBOARD.RECENTLY_VIEWED,
+      description: 'Browse your recently viewed listings'
+    },
+    {
+      title: 'Saved Searches',
+      icon: <Search className="w-5 h-5 text-purple-500" />,
+      link: APP_ROUTES.DASHBOARD.SAVED_SEARCHES,
+      description: 'Access your saved search queries'
+    },
+    {
+      title: 'Analytics',
+      icon: <BarChart2 className="w-5 h-5 text-green-500" />,
+      link: APP_ROUTES.DASHBOARD.ANALYTICS,
+      description: 'Monitor performance metrics for your listings'
     }
   ];
 
@@ -87,174 +150,178 @@ function Dashboard() {
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1">
-          Welcome back, {displayName}! Here's what's happening with your listings.
+          Welcome back, {userProfile?.displayName || currentUser?.email}
         </p>
       </header>
       
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                <p className="text-2xl font-bold mt-2">{stat.value}</p>
+      {/* Summary Boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {summaryBoxes.map((box, index) => (
+          <div 
+            key={index}
+            className="bg-white rounded-lg shadow-sm p-6"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${box.color}`}>
+                {box.icon}
               </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                {stat.icon}
-              </div>
+              <span className="text-2xl font-bold">{box.value}</span>
             </div>
-            <div className="mt-2">
-              <span className={`text-sm font-medium ${
-                stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {stat.change}
-              </span>
-              <span className="text-sm text-gray-500 ml-1">from last month</span>
-            </div>
+            <p className="text-gray-500 font-medium mb-3">{box.title}</p>
+            <Link 
+              to={box.link}
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
+            >
+              {box.linkText}
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
         ))}
       </div>
       
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Entity List */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow">
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-lg font-semibold">Your Entities</h2>
-              <Link 
-                to={APP_ROUTES.DASHBOARD.ADD_ENTITY}
-                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200"
-              >
-                <PlusCircle size={16} className="mr-1" />
-                Add New
-              </Link>
-            </div>
-            
-            <div className="divide-y">
-              {loading ? (
-                <div className="p-6 text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-2"></div>
-                  <p className="text-gray-500">Loading your entities...</p>
-                </div>
-              ) : Array.isArray(userEntities) && userEntities.length > 0 ? (
-                userEntities.slice(0, 5).map((entity, index) => (
-                  <div key={index} className="p-6 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center mr-4">
-                        <Building size={20} className="text-gray-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{entity?.title || `Entity #${index + 1}`}</h3>
-                        <p className="text-sm text-gray-500">
-                          {entity?.type || 'Business'} • {entity?.plan || 'Basic'} Plan
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <span className="text-gray-500 mr-4">
-                        <Eye size={16} className="inline-block mr-1" />
-                        {entity?.views || 0} views
-                      </span>
-                      <Link
-                        to={`${APP_ROUTES.DASHBOARD.EDIT_ENTITY}/${entity?.id || index}`}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        Edit <ArrowRight size={16} className="inline-block ml-1" />
-                      </Link>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-6 text-center">
-                  <p className="text-gray-500 mb-4">You haven't added any entities yet.</p>
-                  <Link
-                    to={APP_ROUTES.DASHBOARD.ADD_ENTITY}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    <PlusCircle size={16} className="mr-2" />
-                    Add Your First Entity
-                  </Link>
-                </div>
-              )}
-            </div>
-            
-            {Array.isArray(userEntities) && userEntities.length > 5 && (
-              <div className="p-4 border-t text-center">
-                <Link
-                  to={APP_ROUTES.DASHBOARD.ENTITIES}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  View All Entities
-                </Link>
-              </div>
-            )}
+      {/* Analytics Overview */}
+      <div className="bg-white rounded-lg shadow-sm mb-8">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">Analytics Overview</h2>
+            <Link 
+              to={APP_ROUTES.DASHBOARD.ANALYTICS}
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
+            >
+              View detailed analytics
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
         </div>
         
-        {/* Activity Feed */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow h-full">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-semibold">Recent Activity</h2>
-            </div>
-            
-            <div className="divide-y">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="p-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0 mr-4">
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        {activity.type === 'message' ? (
-                          <MessageSquare size={16} className="text-blue-600" />
-                        ) : activity.type === 'subscription' ? (
-                          <Calendar size={16} className="text-purple-600" />
-                        ) : (
-                          <Eye size={16} className="text-green-600" />
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">{activity.activity}</p>
-                      <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
-                    </div>
+        {statsLoading || !analyticsData ? (
+          <div className="p-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mb-2"></div>
+            <p className="text-gray-500">Loading analytics data...</p>
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-500 mb-1">Views</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.views.total}</p>
+                  <div className={`text-sm flex items-center ${
+                    analyticsData.summary.views.trend > 0 
+                      ? 'text-green-600' 
+                      : analyticsData.summary.views.trend < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                  }`}>
+                    {analyticsData.summary.views.trend > 0 ? '+' : ''}
+                    {analyticsData.summary.views.trend}%
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="p-6 border-t">
-              <h3 className="font-medium mb-2">Quick Actions</h3>
-              <div className="space-y-2">
-                <Link
-                  to={APP_ROUTES.DASHBOARD.ADD_ENTITY}
-                  className="block px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <PlusCircle size={16} className="inline-block mr-2" />
-                  Add New Entity
-                </Link>
-                <Link
-                  to={APP_ROUTES.DASHBOARD.MESSAGES}
-                  className="block px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <MessageSquare size={16} className="inline-block mr-2" />
-                  Check Messages
-                </Link>
-                <Link
-                  to={APP_ROUTES.DASHBOARD.CONNECTS}
-                  className="block px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <Users size={16} className="inline-block mr-2" />
-                  Buy Connects
-                </Link>
+              </div>
+              
+              <div className="p-4 bg-green-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-500 mb-1">Contacts</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.contacts.total}</p>
+                  <div className={`text-sm flex items-center ${
+                    analyticsData.summary.contacts.trend > 0 
+                      ? 'text-green-600' 
+                      : analyticsData.summary.contacts.trend < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                  }`}>
+                    {analyticsData.summary.contacts.trend > 0 ? '+' : ''}
+                    {analyticsData.summary.contacts.trend}%
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-red-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-500 mb-1">Favorites</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.favorites.total}</p>
+                  <div className={`text-sm flex items-center ${
+                    analyticsData.summary.favorites.trend > 0 
+                      ? 'text-green-600' 
+                      : analyticsData.summary.favorites.trend < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                  }`}>
+                    {analyticsData.summary.favorites.trend > 0 ? '+' : ''}
+                    {analyticsData.summary.favorites.trend}%
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-500 mb-1">Conversion Rate</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.conversionRate.value}%</p>
+                  <div className={`text-sm flex items-center ${
+                    analyticsData.summary.conversionRate.trend > 0 
+                      ? 'text-green-600' 
+                      : analyticsData.summary.conversionRate.trend < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                  }`}>
+                    {analyticsData.summary.conversionRate.trend > 0 ? '+' : ''}
+                    {analyticsData.summary.conversionRate.trend}%
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        )}
+      </div>
+      
+      {/* Quick Actions */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {quickActions.map((action, index) => (
+            <Link 
+              key={index}
+              to={action.link}
+              className={`block p-6 rounded-lg ${action.color} transition-all duration-300 hover:shadow-md`}
+            >
+              <div className="flex items-center mb-2">
+                {action.icon}
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">{action.title}</h3>
+              <p className="text-sm text-gray-600">{action.description}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+      
+      {/* Dashboard Sections */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Dashboard Sections</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x">
+          {dashboardSections.map((section, index) => (
+            <Link 
+              key={index}
+              to={section.link}
+              className="p-6 hover:bg-gray-50 transition-colors duration-300 flex flex-col"
+            >
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
+                  {section.icon}
+                </div>
+                <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-2">{section.description}</p>
+              <div className="mt-auto flex items-center text-sm text-indigo-600 font-medium">
+                View section <ArrowRight className="w-4 h-4 ml-1" />
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-export default Dashboard;
+export default DashboardPage;

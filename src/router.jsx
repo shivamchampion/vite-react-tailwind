@@ -9,17 +9,22 @@ import DashboardLayout from './layouts/DashboardLayout';
 // Pages - Lazy loaded for better performance
 const Homepage = React.lazy(() => import('./pages/home'));
 const MarketplaceListingsPage = React.lazy(() => import('./pages/marketplace/MarketplaceListings'));
-const EntityDetailPage = React.lazy(() => import('./pages/marketplace/EntityDetail'));
+const ListingDetailPage = React.lazy(() => import('./pages/marketplace/ListingDetail')); // Renamed from EntityDetail
 const DashboardPage = React.lazy(() => import('./pages/dashboard'));
 const ProfilePage = React.lazy(() => import('./pages/dashboard/Profile'));
-const EntitiesPage = React.lazy(() => import('./pages/dashboard/Entities'));
-const AddEntityPage = React.lazy(() => import('./pages/dashboard/AddEntity'));
-const EditEntityPage = React.lazy(() => import('./pages/dashboard/EditEntity'));
+const ListingsPage = React.lazy(() => import('./pages/dashboard/Listings')); // Renamed from Entities
+const AddListingPage = React.lazy(() => import('./pages/dashboard/AddListing')); // Renamed from AddEntity
+const EditListingPage = React.lazy(() => import('./pages/dashboard/EditListing')); // Renamed from EditEntity
 const ConnectsPage = React.lazy(() => import('./pages/dashboard/Connects'));
 const MessagesPage = React.lazy(() => import('./pages/dashboard/Messages'));
 const SettingsPage = React.lazy(() => import('./pages/dashboard/Settings'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFound'));
 
+// New dashboard pages
+const SavedSearchesPage = React.lazy(() => import('./pages/dashboard/SavedSearches'));
+const FavoritesPage = React.lazy(() => import('./pages/dashboard/Favorites'));
+const RecentlyViewedPage = React.lazy(() => import('./pages/dashboard/RecentlyViewed'));
+const AnalyticsPage = React.lazy(() => import('./pages/dashboard/Analytics'));
 
 // Static Pages
 const AboutPage = React.lazy(() => import('./pages/static/About'));
@@ -28,6 +33,7 @@ const FAQPage = React.lazy(() => import('./pages/static/FAQ'));
 const PrivacyPage = React.lazy(() => import('./pages/static/Privacy'));
 const TermsPage = React.lazy(() => import('./pages/static/Terms'));
 const HowItWorksPage = React.lazy(() => import('./pages/static/HowItWorks'));
+
 // Protected route component
 const ProtectedRoute = ({ element, isAuthenticated, redirectPath = APP_ROUTES.HOME }) => {
   return isAuthenticated ? element : <Navigate to={redirectPath} replace />;
@@ -40,6 +46,7 @@ export const createRouter = (isAuthenticated) => {
       path: '/',
       element: <MainLayout />,
       errorElement: <NotFoundPage />,
+      loader: () => ({ openAuthModal: true }), // For passing openAuthModal function
       children: [
         {
           index: true,
@@ -67,7 +74,7 @@ export const createRouter = (isAuthenticated) => {
         },
         {
           path: `${APP_ROUTES.MARKETPLACE.DETAIL}/:id`,
-          element: <EntityDetailPage />
+          element: <ListingDetailPage />
         },
         {
           path: APP_ROUTES.STATIC.ABOUT,
@@ -114,16 +121,16 @@ export const createRouter = (isAuthenticated) => {
           element: <ProfilePage />
         },
         {
-          path: APP_ROUTES.DASHBOARD.ENTITIES.split('/dashboard/')[1],
-          element: <EntitiesPage />
+          path: APP_ROUTES.DASHBOARD.LISTINGS.split('/dashboard/')[1], // Renamed from ENTITIES
+          element: <ListingsPage />
         },
         {
-          path: APP_ROUTES.DASHBOARD.ADD_ENTITY.split('/dashboard/')[1],
-          element: <AddEntityPage />
+          path: APP_ROUTES.DASHBOARD.ADD_LISTING.split('/dashboard/')[1], // Renamed from ADD_ENTITY
+          element: <AddListingPage />
         },
         {
-          path: `${APP_ROUTES.DASHBOARD.EDIT_ENTITY.split('/dashboard/')[1]}/:id`,
-          element: <EditEntityPage />
+          path: `${APP_ROUTES.DASHBOARD.EDIT_LISTING.split('/dashboard/')[1]}/:id`, // Renamed from EDIT_ENTITY
+          element: <EditListingPage />
         },
         {
           path: APP_ROUTES.DASHBOARD.CONNECTS.split('/dashboard/')[1],
@@ -136,6 +143,23 @@ export const createRouter = (isAuthenticated) => {
         {
           path: APP_ROUTES.DASHBOARD.SETTINGS.split('/dashboard/')[1],
           element: <SettingsPage />
+        },
+        // New dashboard routes
+        {
+          path: APP_ROUTES.DASHBOARD.SAVED_SEARCHES.split('/dashboard/')[1],
+          element: <SavedSearchesPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.FAVORITES.split('/dashboard/')[1],
+          element: <FavoritesPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.RECENTLY_VIEWED.split('/dashboard/')[1],
+          element: <RecentlyViewedPage />
+        },
+        {
+          path: APP_ROUTES.DASHBOARD.ANALYTICS.split('/dashboard/')[1],
+          element: <AnalyticsPage />
         }
       ]
     },

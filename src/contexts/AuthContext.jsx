@@ -30,6 +30,42 @@ export const AuthProvider = ({ children }) => {
   // Clear error helper
   const clearError = () => setError(null);
 
+  const createUserDocument = async (user, additionalData = {}) => {
+    if (!user) return null;
+    
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        const { displayName, email, photoURL, phoneNumber } = user;
+        const createdAt = new Date();
+        
+        const userData = {
+          uid: user.uid,
+          displayName: displayName || '',
+          email: email || '',
+          photoURL: photoURL || '',
+          phoneNumber: phoneNumber || '',
+          createdAt,
+          updatedAt: createdAt,
+          role: 'user',
+          listings: [], // Changed from entities to listings
+          connectsBalance: 15, // Default connects balance
+          ...additionalData
+        };
+        
+        await setDoc(userRef, userData);
+        return userData;
+      }
+      
+      return userDoc.data();
+    } catch (error) {
+      console.error('Error creating user document:', error);
+      return null;
+    }
+  };
+
   // Effect to listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -39,10 +75,14 @@ export const AuthProvider = ({ children }) => {
         try {
           // Get extended user profile from Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
+          
           if (userDoc.exists()) {
             setUserProfile(userDoc.data());
           } else {
-            console.warn('User document not found in Firestore');
+            // USER DOCUMENT NOT FOUND - Create it
+            console.warn('User document not found in Firestore. Creating one...');
+            const newUserData = await createUserDocument(user);
+            setUserProfile(newUserData);
           }
         } catch (err) {
           console.error('Error fetching user profile:', err);
@@ -53,11 +93,10 @@ export const AuthProvider = ({ children }) => {
       
       setLoading(false);
     });
-
+  
     // Cleanup subscription
     return unsubscribe;
   }, []);
-
   // Register with email and password
   const register = async (email, password, displayName) => {
     clearError();

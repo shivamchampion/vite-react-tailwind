@@ -64,7 +64,10 @@ function App() {
   
   return (
     <>
-      <RouterProvider router={routerWithContext} />
+      <RouterProvider 
+      router={routerWithContext} 
+      hydrateFallback={<LoadingSpinner />} // Add this line
+    />
       
       {/* Global Auth Modal */}
       <AuthModal 

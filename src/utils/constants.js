@@ -1,9 +1,5 @@
-/**
- * Application Constants
- */
-
-// Entity Types
-export const ENTITY_TYPES = {
+// Update your constants.js file to rename ENTITY_TYPES to LISTING_TYPES and update paths
+export const LISTING_TYPES = {
   BUSINESS: 'business',
   FRANCHISE: 'franchise',
   STARTUP: 'startup',
@@ -11,7 +7,48 @@ export const ENTITY_TYPES = {
   DIGITAL_ASSET: 'digital_asset'
 };
 
-// Plan Types
+// Update routes in your APP_ROUTES
+export const APP_ROUTES = {
+  HOME: '/',
+  AUTH: {
+    LOGIN: '/login',
+    REGISTER: '/register',
+    RESET_PASSWORD: '/reset-password'
+  },
+  DASHBOARD: {
+    ROOT: '/dashboard',
+    PROFILE: '/dashboard/profile',
+    LISTINGS: '/dashboard/listings', // Changed from ENTITIES
+    ADD_LISTING: '/dashboard/add-listing', // Changed from ADD_ENTITY
+    EDIT_LISTING: '/dashboard/edit-listing', // Changed from EDIT_ENTITY
+    CONNECTS: '/dashboard/connects',
+    MESSAGES: '/dashboard/messages',
+    SETTINGS: '/dashboard/settings',
+    SAVED_SEARCHES: '/dashboard/saved-searches', // New route
+    FAVORITES: '/dashboard/favorites', // New route
+    RECENTLY_VIEWED: '/dashboard/recently-viewed', // New route
+    ANALYTICS: '/dashboard/analytics' // New route
+  },
+  MARKETPLACE: {
+    BUSINESS: '/marketplace/business',
+    FRANCHISE: '/marketplace/franchise',
+    STARTUP: '/marketplace/startup',
+    INVESTOR: '/marketplace/investor',
+    DIGITAL_ASSET: '/marketplace/digital-asset',
+    DETAIL: '/marketplace/detail',
+    SEARCH: '/marketplace/search'
+  },
+  STATIC: {
+    ABOUT: '/about',
+    CONTACT: '/contact',
+    PRIVACY: '/privacy',
+    TERMS: '/terms',
+    FAQ: '/faq',
+    HOW_IT_WORKS: '/how-it-works'
+  }
+};
+
+// Make sure plan types are consistently named
 export const PLAN_TYPES = {
   BASIC: 'basic',
   ADVANCED: 'advanced',
@@ -19,118 +56,43 @@ export const PLAN_TYPES = {
   PLATINUM: 'platinum'
 };
 
-// Plan Features
+// Plan features remain the same
 export const PLAN_FEATURES = {
-  [PLAN_TYPES.BASIC]: {
+  basic: {
     name: 'Basic',
-    price: 499,
-    durationDays: 30,
+    price: 999,
     connectsIncluded: 15,
     featuredListing: false,
     analytics: false,
-    supportLevel: 'email',
-    description: 'Starter plan for small businesses',
-    color: 'gray'
+    supportLevel: 'Basic'
   },
-  [PLAN_TYPES.ADVANCED]: {
+  advanced: {
     name: 'Advanced',
-    price: 999,
-    durationDays: 30,
-    connectsIncluded: 30,
-    featuredListing: false,
-    analytics: true,
-    supportLevel: 'email',
-    description: 'More visibility and features for growing businesses',
-    color: 'blue'
-  },
-  [PLAN_TYPES.PREMIUM]: {
-    name: 'Premium',
     price: 1999,
-    durationDays: 30,
+    connectsIncluded: 30,
+    featuredListing: true,
+    analytics: false,
+    supportLevel: 'Standard'
+  },
+  premium: {
+    name: 'Premium',
+    price: 3999,
     connectsIncluded: 60,
     featuredListing: true,
     analytics: true,
-    supportLevel: 'priority',
-    description: 'Enhanced visibility with priority features',
-    color: 'purple'
+    supportLevel: 'Priority'
   },
-  [PLAN_TYPES.PLATINUM]: {
+  platinum: {
     name: 'Platinum',
-    price: 4999,
-    durationDays: 30,
+    price: 7999,
     connectsIncluded: 150,
     featuredListing: true,
     analytics: true,
-    supportLevel: 'dedicated',
-    description: 'Maximum visibility and dedicated support',
-    color: 'gold'
+    supportLevel: 'Dedicated'
   }
 };
 
-// User Roles
-export const USER_ROLES = {
-  USER: 'user',
-  ADMIN: 'admin',
-  SUPER_ADMIN: 'super_admin'
-};
-
-// Entity Status
-export const ENTITY_STATUS = {
-  ACTIVE: 'active',
-  PENDING: 'pending',
-  INACTIVE: 'inactive',
-  REJECTED: 'rejected'
-};
-
-// Business Categories
-export const BUSINESS_CATEGORIES = [
-  'Food & Beverage',
-  'Retail',
-  'Manufacturing',
-  'Technology',
-  'Healthcare',
-  'Education',
-  'Services',
-  'Hospitality',
-  'Real Estate',
-  'Financial Services',
-  'Automotive',
-  'Entertainment',
-  'Construction',
-  'Agriculture',
-  'Transportation',
-  'Energy'
-];
-
-// Investment Categories
-export const INVESTMENT_CATEGORIES = [
-  'Seed',
-  'Early Stage',
-  'Growth',
-  'Late Stage',
-  'Acquisition',
-  'Angel Investing',
-  'Venture Capital',
-  'Private Equity',
-  'Real Estate',
-  'Debt Financing'
-];
-
-// Digital Asset Categories
-export const DIGITAL_ASSET_CATEGORIES = [
-  'Website',
-  'Mobile App',
-  'SaaS Platform',
-  'E-commerce Store',
-  'Blog',
-  'Domain Name',
-  'Content Site',
-  'Social Media Account',
-  'Online Marketplace',
-  'Digital Product'
-];
-
-// Locations (Indian Cities)
+// Common locations in India
 export const INDIAN_CITIES = [
   'Mumbai',
   'Delhi',
@@ -149,101 +111,23 @@ export const INDIAN_CITIES = [
   'Thane',
   'Bhopal',
   'Visakhapatnam',
-  'Vadodara',
   'Patna',
+  'Vadodara',
   'Ghaziabad',
   'Ludhiana',
-  'Coimbatore',
   'Agra',
-  'Madurai',
   'Nashik',
   'Faridabad',
   'Meerut',
   'Rajkot',
   'Varanasi',
   'Srinagar',
-  'Other'
+  'Aurangabad',
+  'Dhanbad',
+  'Amritsar',
+  'Chandigarh',
+  'Coimbatore',
+  'Guwahati',
+  'Kochi',
+  'Pan India' // For businesses operating nationwide
 ];
-
-// API Routes
-export const API_ROUTES = {
-  AUTH: {
-    REGISTER: '/api/auth/register',
-    LOGIN: '/api/auth/login',
-    LOGOUT: '/api/auth/logout',
-    RESET_PASSWORD: '/api/auth/reset-password',
-    VERIFY_EMAIL: '/api/auth/verify-email',
-    LINKEDIN: '/api/auth/linkedin',
-    WHATSAPP_OTP: '/api/auth/whatsapp-otp',
-    VERIFY_WHATSAPP_OTP: '/api/auth/verify-whatsapp-otp'
-  },
-  ENTITIES: {
-    CREATE: '/api/entities/create',
-    UPDATE: '/api/entities/update',
-    DELETE: '/api/entities/delete',
-    GET: '/api/entities/get',
-    SEARCH: '/api/entities/search'
-  },
-  PLANS: {
-    GET: '/api/plans/get',
-    PURCHASE: '/api/plans/purchase'
-  },
-  CONNECTS: {
-    GET: '/api/connects/get',
-    PURCHASE: '/api/connects/purchase',
-    USE: '/api/connects/use'
-  }
-};
-
-// Application Routes
-export const APP_ROUTES = {
-  HOME: '/',
-  AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
-    VERIFY_EMAIL: '/auth/verify-email'
-  },
-  DASHBOARD: {
-    ROOT: '/dashboard',
-    PROFILE: '/dashboard/profile',
-    ENTITIES: '/dashboard/entities',
-    ADD_ENTITY: '/dashboard/entities/add',
-    EDIT_ENTITY: '/dashboard/entities/edit',
-    CONNECTS: '/dashboard/connects',
-    MESSAGES: '/dashboard/messages',
-    SETTINGS: '/dashboard/settings'
-  },
-  MARKETPLACE: {
-    ROOT: '/marketplace',
-    BUSINESS: '/marketplace/business',
-    FRANCHISE: '/marketplace/franchise',
-    STARTUP: '/marketplace/startup',
-    INVESTOR: '/marketplace/investor',
-    DIGITAL_ASSET: '/marketplace/digital-asset',
-    DETAIL: '/marketplace/detail'
-  },
-  STATIC: {
-    ABOUT: '/about',
-    CONTACT: '/contact',
-    PRIVACY: '/privacy-policy',
-    TERMS: '/terms',
-    FAQ: '/faq',
-    HOW_IT_WORKS: '/how-it-works'
-  }
-};
-
-export default {
-  ENTITY_TYPES,
-  PLAN_TYPES,
-  PLAN_FEATURES,
-  USER_ROLES,
-  ENTITY_STATUS,
-  BUSINESS_CATEGORIES,
-  INVESTMENT_CATEGORIES,
-  DIGITAL_ASSET_CATEGORIES,
-  INDIAN_CITIES,
-  API_ROUTES,
-  APP_ROUTES
-};
