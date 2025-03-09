@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { createRouter } from './router';
 import { useAuth } from './contexts/AuthContext';
@@ -7,7 +7,7 @@ import AuthModal from './components/auth/AuthModal';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, currentUser } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
   
@@ -56,18 +56,26 @@ function App() {
     };
     
     return enhancedRouter;
-  }, [router]);
+  }, [router, openAuthModal]);
   
   if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  // Check if user authentication state has fully initialized
+  if (currentUser === undefined) {
     return <LoadingSpinner />;
   }
   
   return (
     <>
-      <RouterProvider 
-      router={routerWithContext} 
-      hydrateFallback={<LoadingSpinner />} // Add this line
-    />
+      <Suspense fallback={<LoadingSpinner />}>
+        <RouterProvider 
+          router={routerWithContext} 
+          fallbackElement={<LoadingSpinner />}
+          hydrationData={{}}
+        />
+      </Suspense>
       
       {/* Global Auth Modal */}
       <AuthModal 
@@ -78,28 +86,7 @@ function App() {
       />
       
       {/* Toast Notifications */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#fff',
-            color: '#333',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
+      <Toaster position="bottom-right" />
     </>
   );
 }

@@ -11,24 +11,24 @@ import {
   Search, 
   BarChart2,
   ArrowRight,
-  Briefcase
+  Briefcase,
+  Zap,
+  Layers,
+  Globe,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useListing } from '../../contexts/ListingContext'; // FIXED: Changed from useEntity to useListing
+import { useListing } from '../../contexts/ListingContext';
 import { APP_ROUTES, LISTING_TYPES } from '../../utils/constants';
 
-/**
- * Dashboard Home Page Component
- * Displays dashboard overview and stats
- */
 function DashboardPage() {
   const { currentUser, userProfile } = useAuth();
   const { 
-    userListings, // FIXED: Changed from userEntities
-    getListingCountByType, // FIXED: Changed from getEntityCountByType
+    userListings, 
+    getListingCountByType, 
     getAnalyticsData,
     loading 
-  } = useListing(); // FIXED: Changed from useEntity
+  } = useListing();
   
   const [analyticsData, setAnalyticsData] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -52,35 +52,35 @@ function DashboardPage() {
   // Summary boxes data
   const summaryBoxes = [
     {
-      title: 'Total Listings', // FIXED: Changed from Entities
-      value: Array.isArray(userListings) ? userListings.length : 0, // FIXED: Changed from userEntities
-      icon: <Building className="w-6 h-6 text-blue-600" />,
-      color: 'bg-blue-100 text-blue-800',
-      link: APP_ROUTES.DASHBOARD.LISTINGS, // FIXED: Changed from ENTITIES
+      title: 'Total Listings',
+      value: Array.isArray(userListings) ? userListings.length : 0,
+      icon: <Building className="w-6 h-6 text-blue-500" />,
+      color: 'bg-blue-50 text-blue-800',
+      link: APP_ROUTES.DASHBOARD.LISTINGS,
       linkText: 'View all'
     },
     {
       title: 'Businesses',
-      value: getListingCountByType(LISTING_TYPES.BUSINESS), // FIXED: Changed from getEntityCountByType
-      icon: <Building className="w-6 h-6 text-purple-600" />,
-      color: 'bg-purple-100 text-purple-800',
-      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.BUSINESS}`, // FIXED: Changed from ENTITIES
+      value: getListingCountByType(LISTING_TYPES.BUSINESS),
+      icon: <Briefcase className="w-6 h-6 text-purple-500" />,
+      color: 'bg-purple-50 text-purple-800',
+      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.BUSINESS}`,
       linkText: 'View businesses'
     },
     {
       title: 'Franchises',
-      value: getListingCountByType(LISTING_TYPES.FRANCHISE), // FIXED: Changed from getEntityCountByType
-      icon: <Briefcase className="w-6 h-6 text-green-600" />,
-      color: 'bg-green-100 text-green-800',
-      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.FRANCHISE}`, // FIXED: Changed from ENTITIES
+      value: getListingCountByType(LISTING_TYPES.FRANCHISE),
+      icon: <Globe className="w-6 h-6 text-green-500" />,
+      color: 'bg-green-50 text-green-800',
+      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.FRANCHISE}`,
       linkText: 'View franchises'
     },
     {
       title: 'Startups',
-      value: getListingCountByType(LISTING_TYPES.STARTUP), // FIXED: Changed from getEntityCountByType
-      icon: <TrendingUp className="w-6 h-6 text-red-600" />,
-      color: 'bg-red-100 text-red-800',
-      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.STARTUP}`, // FIXED: Changed from ENTITIES
+      value: getListingCountByType(LISTING_TYPES.STARTUP),
+      icon: <TrendingUp className="w-6 h-6 text-red-500" />,
+      color: 'bg-red-50 text-red-800',
+      link: `${APP_ROUTES.DASHBOARD.LISTINGS}?type=${LISTING_TYPES.STARTUP}`,
       linkText: 'View startups'
     }
   ];
@@ -88,32 +88,40 @@ function DashboardPage() {
   // Quick actions
   const quickActions = [
     {
-      title: 'Add New Listing', // FIXED: Changed from Entity
+      title: 'Add New Listing',
       description: 'Create a new business, franchise, or startup listing',
       icon: <Building className="w-8 h-8 text-indigo-600" />,
-      link: APP_ROUTES.DASHBOARD.ADD_LISTING, // FIXED: Changed from ADD_ENTITY
-      color: 'bg-indigo-50 hover:bg-indigo-100'
+      link: APP_ROUTES.DASHBOARD.ADD_LISTING,
+      color: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
+      gradientFrom: 'from-indigo-50',
+      gradientTo: 'to-indigo-100'
     },
     {
       title: 'View Analytics',
       description: 'Check performance metrics for your listings',
       icon: <BarChart2 className="w-8 h-8 text-blue-600" />,
       link: APP_ROUTES.DASHBOARD.ANALYTICS,
-      color: 'bg-blue-50 hover:bg-blue-100'
+      color: 'bg-blue-50 hover:bg-blue-100 border-blue-200',
+      gradientFrom: 'from-blue-50',
+      gradientTo: 'to-blue-100'
     },
     {
       title: 'Check Messages',
       description: 'View and respond to inquiries',
       icon: <MessageSquare className="w-8 h-8 text-green-600" />,
       link: APP_ROUTES.DASHBOARD.MESSAGES,
-      color: 'bg-green-50 hover:bg-green-100'
+      color: 'bg-green-50 hover:bg-green-100 border-green-200',
+      gradientFrom: 'from-green-50',
+      gradientTo: 'to-green-100'
     },
     {
       title: 'Update Profile',
       description: 'Keep your profile information up to date',
       icon: <Users className="w-8 h-8 text-purple-600" />,
       link: APP_ROUTES.DASHBOARD.PROFILE,
-      color: 'bg-purple-50 hover:bg-purple-100'
+      color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
+      gradientFrom: 'from-purple-50',
+      gradientTo: 'to-purple-100'
     }
   ];
   
@@ -123,51 +131,68 @@ function DashboardPage() {
       title: 'Favorites',
       icon: <Heart className="w-5 h-5 text-red-500" />,
       link: APP_ROUTES.DASHBOARD.FAVORITES,
-      description: 'View and manage your saved listings'
+      description: 'View and manage your saved listings',
+      color: 'bg-red-50 text-red-600'
     },
     {
       title: 'Recently Viewed',
       icon: <Clock className="w-5 h-5 text-blue-500" />,
       link: APP_ROUTES.DASHBOARD.RECENTLY_VIEWED,
-      description: 'Browse your recently viewed listings'
+      description: 'Browse your recently viewed listings',
+      color: 'bg-blue-50 text-blue-600'
     },
     {
       title: 'Saved Searches',
       icon: <Search className="w-5 h-5 text-purple-500" />,
       link: APP_ROUTES.DASHBOARD.SAVED_SEARCHES,
-      description: 'Access your saved search queries'
+      description: 'Access your saved search queries',
+      color: 'bg-purple-50 text-purple-600'
     },
     {
       title: 'Analytics',
       icon: <BarChart2 className="w-5 h-5 text-green-500" />,
       link: APP_ROUTES.DASHBOARD.ANALYTICS,
-      description: 'Monitor performance metrics for your listings'
+      description: 'Monitor performance metrics for your listings',
+      color: 'bg-green-50 text-green-600'
     }
   ];
 
   return (
-    <div>
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Welcome back, {userProfile?.displayName || currentUser?.email}
-        </p>
+    <div className="space-y-8 p-6 bg-gray-50 min-h-screen">
+      <header className="bg-white shadow-sm rounded-lg p-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">
+            Welcome back, {userProfile?.displayName || currentUser?.email}
+          </p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-500">
+            {userProfile?.plan || 'Basic'} Plan
+          </span>
+          <Link 
+            to={APP_ROUTES.DASHBOARD.SETTINGS}
+            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            Manage Plan
+          </Link>
+        </div>
       </header>
-      
+
       {/* Summary Boxes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {summaryBoxes.map((box, index) => (
           <div 
             key={index}
-            className="bg-white rounded-lg shadow-sm p-6"
+            className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${box.color} transform transition-all hover:scale-105 hover:shadow-lg`}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${box.color}`}>
                 {box.icon}
               </div>
-              <span className="text-2xl font-bold">{box.value}</span>
+              <span className="text-3xl font-bold">{box.value}</span>
             </div>
-            <p className="text-gray-500 font-medium mb-3">{box.title}</p>
+            <p className="text-sm font-medium mb-3">{box.title}</p>
             <Link 
               to={box.link}
               className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
@@ -179,19 +204,37 @@ function DashboardPage() {
         ))}
       </div>
       
-      {/* Analytics Overview */}
-      <div className="bg-white rounded-lg shadow-sm mb-8">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Analytics Overview</h2>
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {quickActions.map((action, index) => (
             <Link 
-              to={APP_ROUTES.DASHBOARD.ANALYTICS}
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
+              key={index}
+              to={action.link}
+              className={`block p-6 rounded-lg border ${action.color} transition-all duration-300 hover:shadow-md bg-gradient-to-br ${action.gradientFrom} ${action.gradientTo}`}
             >
-              View detailed analytics
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <div className="flex items-center mb-4">
+                {action.icon}
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{action.title}</h3>
+              <p className="text-sm text-gray-600">{action.description}</p>
             </Link>
-          </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Analytics Overview */}
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">Analytics Overview</h2>
+          <Link 
+            to={APP_ROUTES.DASHBOARD.ANALYTICS}
+            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
+          >
+            View detailed analytics
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
         </div>
         
         {statsLoading || !analyticsData ? (
@@ -202,100 +245,64 @@ function DashboardPage() {
         ) : (
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-500 mb-1">Views</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.views.total}</p>
-                  <div className={`text-sm flex items-center ${
-                    analyticsData.summary.views.trend > 0 
-                      ? 'text-green-600' 
-                      : analyticsData.summary.views.trend < 0
-                      ? 'text-red-600'
-                      : 'text-gray-600'
-                  }`}>
-                    {analyticsData.summary.views.trend > 0 ? '+' : ''}
-                    {analyticsData.summary.views.trend}%
+              {[
+                { 
+                  label: 'Views', 
+                  value: analyticsData.summary.views.total, 
+                  trend: analyticsData.summary.views.trend,
+                  color: 'text-blue-600 bg-blue-50',
+                  icon: <Eye className="w-6 h-6 text-blue-500" />
+                },
+                { 
+                  label: 'Contacts', 
+                  value: analyticsData.summary.contacts.total, 
+                  trend: analyticsData.summary.contacts.trend,
+                  color: 'text-green-600 bg-green-50',
+                  icon: <MessageSquare className="w-6 h-6 text-green-500" />
+                },
+                { 
+                  label: 'Favorites', 
+                  value: analyticsData.summary.favorites.total, 
+                  trend: analyticsData.summary.favorites.trend,
+                  color: 'text-red-600 bg-red-50',
+                  icon: <Heart className="w-6 h-6 text-red-500" />
+                },
+                { 
+                  label: 'Conversion', 
+                  value: `${analyticsData.summary.conversionRate.value}%`, 
+                  trend: analyticsData.summary.conversionRate.trend,
+                  color: 'text-purple-600 bg-purple-50',
+                  icon: <Zap className="w-6 h-6 text-purple-500" />
+                }
+              ].map((stat, index) => (
+                <div 
+                  key={index} 
+                  className={`p-4 rounded-lg ${stat.color} flex items-center justify-between`}
+                >
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-1">{stat.label}</p>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <div className={`text-sm flex items-center ${
+                      stat.trend > 0 
+                        ? 'text-green-600' 
+                        : stat.trend < 0
+                        ? 'text-red-600'
+                        : 'text-gray-600'
+                    }`}>
+                      {stat.trend > 0 ? '+' : ''}
+                      {stat.trend}%
+                    </div>
                   </div>
+                  {stat.icon}
                 </div>
-              </div>
-              
-              <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-500 mb-1">Contacts</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.contacts.total}</p>
-                  <div className={`text-sm flex items-center ${
-                    analyticsData.summary.contacts.trend > 0 
-                      ? 'text-green-600' 
-                      : analyticsData.summary.contacts.trend < 0
-                      ? 'text-red-600'
-                      : 'text-gray-600'
-                  }`}>
-                    {analyticsData.summary.contacts.trend > 0 ? '+' : ''}
-                    {analyticsData.summary.contacts.trend}%
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 bg-red-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-500 mb-1">Favorites</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.favorites.total}</p>
-                  <div className={`text-sm flex items-center ${
-                    analyticsData.summary.favorites.trend > 0 
-                      ? 'text-green-600' 
-                      : analyticsData.summary.favorites.trend < 0
-                      ? 'text-red-600'
-                      : 'text-gray-600'
-                  }`}>
-                    {analyticsData.summary.favorites.trend > 0 ? '+' : ''}
-                    {analyticsData.summary.favorites.trend}%
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-500 mb-1">Conversion Rate</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xl font-bold text-gray-900">{analyticsData.summary.conversionRate.value}%</p>
-                  <div className={`text-sm flex items-center ${
-                    analyticsData.summary.conversionRate.trend > 0 
-                      ? 'text-green-600' 
-                      : analyticsData.summary.conversionRate.trend < 0
-                      ? 'text-red-600'
-                      : 'text-gray-600'
-                  }`}>
-                    {analyticsData.summary.conversionRate.trend > 0 ? '+' : ''}
-                    {analyticsData.summary.conversionRate.trend}%
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
       </div>
       
-      {/* Quick Actions */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickActions.map((action, index) => (
-            <Link 
-              key={index}
-              to={action.link}
-              className={`block p-6 rounded-lg ${action.color} transition-all duration-300 hover:shadow-md`}
-            >
-              <div className="flex items-center mb-2">
-                {action.icon}
-              </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">{action.title}</h3>
-              <p className="text-sm text-gray-600">{action.description}</p>
-            </Link>
-          ))}
-        </div>
-      </div>
-      
       {/* Dashboard Sections */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Dashboard Sections</h2>
         </div>
@@ -304,15 +311,15 @@ function DashboardPage() {
             <Link 
               key={index}
               to={section.link}
-              className="p-6 hover:bg-gray-50 transition-colors duration-300 flex flex-col"
+              className="p-6 hover:bg-gray-50 transition-colors duration-300 flex flex-col group"
             >
               <div className="flex items-center mb-3">
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${section.color} group-hover:scale-110 transition-transform`}>
                   {section.icon}
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-2">{section.description}</p>
+              <p className="text-sm text-gray-600 mb-2 flex-grow">{section.description}</p>
               <div className="mt-auto flex items-center text-sm text-indigo-600 font-medium">
                 View section <ArrowRight className="w-4 h-4 ml-1" />
               </div>
