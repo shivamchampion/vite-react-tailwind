@@ -8,7 +8,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages - Lazy loaded for better performance
 const Homepage = React.lazy(() => import('./pages/home'));
-const BusinessListingsPage = React.lazy(() => import('./pages/marketplace/BusinessListings'));
+const MarketplaceListingsPage = React.lazy(() => import('./pages/marketplace/MarketplaceListings'));
 const EntityDetailPage = React.lazy(() => import('./pages/marketplace/EntityDetail'));
 const DashboardPage = React.lazy(() => import('./pages/dashboard'));
 const ProfilePage = React.lazy(() => import('./pages/dashboard/Profile'));
@@ -47,23 +47,23 @@ export const createRouter = (isAuthenticated) => {
         },
         {
           path: APP_ROUTES.MARKETPLACE.BUSINESS,
-          element: <BusinessListingsPage type="business" />
+          element: <MarketplaceListingsPage type="business" />
         },
         {
           path: APP_ROUTES.MARKETPLACE.FRANCHISE,
-          element: <BusinessListingsPage type="franchise" />
+          element: <MarketplaceListingsPage type="franchise" />
         },
         {
           path: APP_ROUTES.MARKETPLACE.STARTUP,
-          element: <BusinessListingsPage type="startup" />
+          element: <MarketplaceListingsPage type="startup" />
         },
         {
           path: APP_ROUTES.MARKETPLACE.INVESTOR,
-          element: <BusinessListingsPage type="investor" />
+          element: <MarketplaceListingsPage type="investor" />
         },
         {
           path: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET,
-          element: <BusinessListingsPage type="digital_asset" />
+          element: <MarketplaceListingsPage type="digital_asset" />
         },
         {
           path: `${APP_ROUTES.MARKETPLACE.DETAIL}/:id`,

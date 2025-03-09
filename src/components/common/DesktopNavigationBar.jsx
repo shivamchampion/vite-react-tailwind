@@ -1,13 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { DropdownMenu } from './DropdownMenu';
 import { BookOpen, Info, ChevronDown } from 'lucide-react';
 import { isResourcesTabActive, isCompanyTabActive } from '../../utils/navigationHelpers';
 
-/**
- * Main Desktop Navigation Bar
- * Renders main navigation links and dropdowns for desktop size
- */
 export const DesktopNavigationBar = ({
   navItems,
   resourcesItems,
@@ -15,17 +11,12 @@ export const DesktopNavigationBar = ({
   dropdownStates,
   toggleDropdown,
   closeAllDropdowns,
-  currentPath
+  currentPath,
+  resourcesRef,
+  companyRef
 }) => {
-  // Check if Resources or Company sections are active based on current path
   const isResourcesActive = isResourcesTabActive(currentPath);
   const isCompanyActive = isCompanyTabActive(currentPath);
-
-  // Handler for dropdown button clicks
-  const handleDropdownClick = (dropdownName) => (e) => {
-    e.stopPropagation(); // Prevent event from bubbling up
-    toggleDropdown(dropdownName);
-  };
 
   return (
     <div className="flex items-center space-x-1">
@@ -45,27 +36,32 @@ export const DesktopNavigationBar = ({
       ))}
 
       {/* Resources Dropdown */}
-      <div className="relative">
+      <div ref={resourcesRef} className="relative z-50">
         <button
           type="button"
-          className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
-            dropdownStates.resources || isResourcesActive 
-              ? 'text-indigo-700 bg-white shadow-sm' 
+          className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md transition-all duration-200 whitespace-nowrap ${
+            dropdownStates.resources || isResourcesActive
+              ? 'text-indigo-700 bg-white shadow-sm'
               : 'hover:text-indigo-700'
           }`}
-          onClick={handleDropdownClick('resources')}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleDropdown('resources');
+          }}
           aria-expanded={dropdownStates.resources}
+          id="desktop-resources-menu-button"
+          aria-haspopup="menu"
+          aria-controls="resources-dropdown-menu"
         >
           <BookOpen className="w-4 h-4 flex-shrink-0 mr-1.5" />
           <span>Resources</span>
-          <ChevronDown 
+          <ChevronDown
             className={`ml-1.5 w-4 h-4 transition-transform ${
               dropdownStates.resources ? 'rotate-180' : ''
-            }`} 
+            }`}
           />
         </button>
 
-        {/* Resources Dropdown Menu */}
         {dropdownStates.resources && (
           <DropdownMenu
             type="resources"
@@ -73,32 +69,39 @@ export const DesktopNavigationBar = ({
             onItemClick={closeAllDropdowns}
             currentPath={currentPath}
             onClose={() => toggleDropdown('resources')}
+            className="resources-dropdown"
+            id="resources-dropdown-menu"
           />
         )}
       </div>
 
       {/* Company Dropdown */}
-      <div className="relative">
+      <div ref={companyRef} className="relative z-50">
         <button
           type="button"
-          className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 whitespace-nowrap ${
-            dropdownStates.company || isCompanyActive 
-              ? 'text-indigo-700 bg-white shadow-sm' 
+          className={`flex items-center text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md transition-all duration-200 whitespace-nowrap ${
+            dropdownStates.company || isCompanyActive
+              ? 'text-indigo-700 bg-white shadow-sm'
               : 'hover:text-indigo-700'
           }`}
-          onClick={handleDropdownClick('company')}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleDropdown('company');
+          }}
           aria-expanded={dropdownStates.company}
+          id="desktop-company-menu-button"
+          aria-haspopup="menu"
+          aria-controls="company-dropdown-menu"
         >
           <Info className="w-4 h-4 flex-shrink-0 mr-1.5" />
           <span>Company</span>
-          <ChevronDown 
+          <ChevronDown
             className={`ml-1.5 w-4 h-4 transition-transform ${
               dropdownStates.company ? 'rotate-180' : ''
-            }`} 
+            }`}
           />
         </button>
 
-        {/* Company Dropdown Menu */}
         {dropdownStates.company && (
           <DropdownMenu
             type="company"
@@ -106,6 +109,8 @@ export const DesktopNavigationBar = ({
             onItemClick={closeAllDropdowns}
             currentPath={currentPath}
             onClose={() => toggleDropdown('company')}
+            className="company-dropdown"
+            id="company-dropdown-menu"
           />
         )}
       </div>

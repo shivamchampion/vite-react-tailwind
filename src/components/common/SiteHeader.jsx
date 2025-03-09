@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { APP_ROUTES } from '../../utils/constants';
@@ -22,16 +22,20 @@ const SiteHeader = ({ openAuthModal }) => {
   // Get the current path for active tab highlighting
   const currentPath = location.pathname;
 
-  // State for dropdowns - separated for clarity
+  // Create refs for dropdowns in all navigation bars
+  const desktopResourcesRef = useRef(null);
+  const desktopCompanyRef = useRef(null);
+  const secondaryResourcesRef = useRef(null);
+  const secondaryCompanyRef = useRef(null);
+  const userDropdownRef = useRef(null);
+
+  // State for dropdowns
   const [dropdownStates, setDropdownStates] = useState({
     resources: false,
     company: false,
     userMenu: false
   });
   
-  // State to prevent immediate auto-close of dropdowns
-  const [preventAutoClose, setPreventAutoClose] = useState(false);
-
   // State for mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -47,65 +51,34 @@ const SiteHeader = ({ openAuthModal }) => {
     {
       name: "Home",
       to: APP_ROUTES.HOME,
-      iconName: "Home",
       active: currentPath === APP_ROUTES.HOME
     },
     {
       name: "Businesses",
       to: APP_ROUTES.MARKETPLACE.BUSINESS,
-      iconName: "Building",
       active: currentPath === APP_ROUTES.MARKETPLACE.BUSINESS
     },
     {
       name: "Franchises",
       to: APP_ROUTES.MARKETPLACE.FRANCHISE,
-      iconName: "TrendingUp",
       active: currentPath === APP_ROUTES.MARKETPLACE.FRANCHISE
     },
     {
       name: "Startups",
       to: APP_ROUTES.MARKETPLACE.STARTUP,
-      iconName: "Lightbulb",
       active: currentPath === APP_ROUTES.MARKETPLACE.STARTUP
     },
     {
       name: "Investors",
       to: APP_ROUTES.MARKETPLACE.INVESTOR,
-      iconName: "Users",
       active: currentPath === APP_ROUTES.MARKETPLACE.INVESTOR
     },
     {
       name: "Digital Assets",
       to: APP_ROUTES.MARKETPLACE.DIGITAL_ASSET,
-      iconName: "Globe",
       active: currentPath === APP_ROUTES.MARKETPLACE.DIGITAL_ASSET
     }
   ];
-
-  // Toggle a specific dropdown while closing others
-  const toggleDropdown = (name) => {
-    // Use a callback to ensure we're working with the most current state
-    setDropdownStates(prevState => {
-      // If the dropdown is already open, close it
-      if (prevState[name]) {
-        return {
-          ...prevState,
-          [name]: false
-        };
-      }
-      
-      // Otherwise, close all dropdowns and open this one
-      const allClosed = Object.keys(prevState).reduce((acc, key) => {
-        acc[key] = false;
-        return acc;
-      }, {});
-      
-      return {
-        ...allClosed,
-        [name]: true
-      };
-    });
-  };
 
   // Close all dropdowns
   const closeAllDropdowns = () => {
@@ -115,6 +88,59 @@ const SiteHeader = ({ openAuthModal }) => {
       userMenu: false
     });
   };
+
+  // Toggle a specific dropdown - improved version
+  const toggleDropdown = (name) => {
+    setDropdownStates(prevState => {
+      const newState = { ...prevState };
+      
+      // Close other dropdowns
+      Object.keys(newState).forEach(key => {
+        if (key !== name) newState[key] = false;
+      });
+      
+      // Toggle the specific dropdown
+      newState[name] = !prevState[name];
+      
+      return newState;
+    });
+  };
+
+  // Handle clicks outside dropdowns - centralized in the parent component
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      // Check if clicking inside any dropdown content or toggle buttons
+      const isInsideDropdown = (
+        // Desktop dropdowns
+        (desktopResourcesRef.current && desktopResourcesRef.current.contains(event.target)) ||
+        (desktopCompanyRef.current && desktopCompanyRef.current.contains(event.target)) ||
+        // Secondary dropdowns
+        (secondaryResourcesRef.current && secondaryResourcesRef.current.contains(event.target)) ||
+        (secondaryCompanyRef.current && secondaryCompanyRef.current.contains(event.target)) ||
+        // User dropdown
+        (userDropdownRef.current && userDropdownRef.current.contains(event.target)) ||
+        // Check if clicking inside any dropdown menu
+        event.target.closest('.dropdown-menu')
+      );
+
+      if (!isInsideDropdown) {
+        closeAllDropdowns();
+      }
+    };
+
+    // Use capture phase to ensure handler runs before others
+    document.addEventListener('mousedown', handleOutsideClick, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick, true);
+    };
+  }, []);
+
+  // Close dropdowns when location changes
+  useEffect(() => {
+    closeAllDropdowns();
+    setMobileMenuOpen(false);
+  }, [currentPath]);
 
   // Handle logout button click
   const handleLogoutClick = () => {
@@ -159,6 +185,8 @@ const SiteHeader = ({ openAuthModal }) => {
                 toggleDropdown={toggleDropdown}
                 closeAllDropdowns={closeAllDropdowns}
                 currentPath={currentPath}
+                resourcesRef={desktopResourcesRef}
+                companyRef={desktopCompanyRef}
               />
             </div>
 
@@ -172,6 +200,7 @@ const SiteHeader = ({ openAuthModal }) => {
               handleLogoutClick={handleLogoutClick}
               userDropdownOpen={dropdownStates.userMenu}
               toggleUserDropdown={() => toggleDropdown('userMenu')}
+              userDropdownRef={userDropdownRef}
             />
           </div>
         </div>
@@ -186,6 +215,8 @@ const SiteHeader = ({ openAuthModal }) => {
         toggleDropdown={toggleDropdown}
         closeAllDropdowns={closeAllDropdowns}
         currentPath={currentPath}
+        resourcesRef={secondaryResourcesRef}
+        companyRef={secondaryCompanyRef}
       />
 
       {/* Mobile/Tablet Menu */}

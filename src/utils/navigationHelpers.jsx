@@ -1,9 +1,3 @@
-/**
- * Navigation Helper Functions
- * 
- * Utility functions to assist with navigation-related functionality
- */
-
 import React from 'react';
 import { APP_ROUTES } from './constants';
 import { 
@@ -20,26 +14,43 @@ import {
  * Check if the current path matches a route pattern
  */
 export const isRouteActive = (currentPath, pattern) => {
+  // Normalize paths by removing trailing slashes
+  currentPath = currentPath.replace(/\/$/, '');
+  pattern = pattern.replace(/\/$/, '');
+
   // Exact match
-  if (currentPath === pattern) {
-    return true;
-  }
+  if (currentPath === pattern) return true;
   
-  // Pattern with trailing slash
-  if (pattern.endsWith('/') && currentPath === pattern.slice(0, -1)) {
-    return true;
-  }
+  // Starts with pattern (for nested routes)
+  if (pattern !== '/' && currentPath.startsWith(pattern)) return true;
   
-  // Pattern without trailing slash
-  if (!pattern.endsWith('/') && currentPath === `${pattern}/`) {
-    return true;
+  // Additional specific route checks
+  const specificRouteChecks = [
+    // Handle routes with similar patterns
+    { base: APP_ROUTES.MARKETPLACE.ROOT, matches: [
+      APP_ROUTES.MARKETPLACE.BUSINESS,
+      APP_ROUTES.MARKETPLACE.FRANCHISE,
+      APP_ROUTES.MARKETPLACE.STARTUP,
+      APP_ROUTES.MARKETPLACE.INVESTOR,
+      APP_ROUTES.MARKETPLACE.DIGITAL_ASSET
+    ]},
+    { base: APP_ROUTES.STATIC.ROOT, matches: [
+      APP_ROUTES.STATIC.ABOUT,
+      APP_ROUTES.STATIC.CONTACT,
+      APP_ROUTES.STATIC.PRIVACY,
+      APP_ROUTES.STATIC.TERMS,
+      APP_ROUTES.STATIC.FAQ,
+      APP_ROUTES.STATIC.HOW_IT_WORKS
+    ]}
+  ];
+
+  // Check for specific route group matches
+  for (const group of specificRouteChecks) {
+    if (group.matches.some(route => route === pattern && currentPath.startsWith(group.base))) {
+      return true;
+    }
   }
-  
-  // Check if current path is a sub-route of the pattern
-  if (pattern !== '/' && currentPath.startsWith(pattern + '/')) {
-    return true;
-  }
-  
+
   return false;
 };
 
@@ -127,4 +138,12 @@ export const getNavigationGroups = () => {
     companyItems,
     resourcesItems
   };
+};
+
+// Export as default
+export default {
+  isRouteActive,
+  isCompanyTabActive,
+  isResourcesTabActive,
+  getNavigationGroups
 };
